@@ -100,6 +100,8 @@ def build():
     d.rectangle([HALF - 1, 0, HALF + 2, H], fill=(255, 255, 255, 105))
     d.rectangle([0, H - 5, W, H], fill=ACCENT + (255,))
 
+    clean = canvas.copy()          # caption-free plate for custom headlines
+
     name_f = ShapedFont(BOLD, NAME_SIZE)
     role_f = ShapedFont(SEMI, ROLE_SIZE)
 
@@ -143,14 +145,9 @@ def build():
             canvas.paste(Image.new("RGB", mask.size, color),
                          (int(round(x)), int(round(y))), mask)
 
-    clean = canvas.copy()
-
     canvas.save(os.path.join(OUT, "krantishikha-dhital-sudan-gurung-1200x600.png"))
     canvas.save(os.path.join(OUT, "krantishikha-dhital-sudan-gurung-1200x600.jpg"),
                 quality=93, subsampling=0)
-    e = ImageDraw.Draw(clean, "RGBA")
-    e.rectangle([HALF - 1, 0, HALF + 2, H], fill=(255, 255, 255, 105))
-    e.rectangle([0, H - 5, W, H], fill=ACCENT + (255,))
     clean.save(os.path.join(OUT, "krantishikha-dhital-sudan-gurung-1200x600-clean.jpg"),
                quality=93, subsampling=0)
     print("done", canvas.size)
