@@ -229,3 +229,23 @@ Installation:
    `wp-config.php`. Facebook's official `engagement.share_count` is then
    added to the total (cached 2 hours). WhatsApp and X have no public
    count API for anyone.
+
+---
+
+## STEP 7 — Confirmed on live site: theme multiplies the real count × 5
+
+Verified September 2026: the theme stores a real-ish base number but
+prints it **× 5** and adds fake views on every page load (article that
+should show ~120 rendered 600 → 630 → 650 as the page was reloaded).
+
+Use [`fixes/palika-fix-share-count.php`](fixes/palika-fix-share-count.php)
+(v2.0): a small server-side plugin (no JS/REST) that
+
+1. divides every `.share-total` number back to the real value in the page
+   HTML;
+2. auto-detects the counter's post-meta key (visible in page source as
+   `<!-- palika share key detected: ... -->` on the first uncached load)
+   and then blocks the fake per-view increments;
+3. needs no configuration; divisor is the `PALIKA_SHARE_DIVISOR` constant
+   (5). Installs as a mu-plugin, a Code Snippets snippet, or inside
+   functions.php — instructions are in the file header.
