@@ -1,0 +1,29 @@
+/* ============================================================
+   Palika Live — hide the FAKE multiplied "Shares" number.
+   WordPress: Appearance → Customize → Additional CSS
+   Keeps Facebook / Messenger / WhatsApp / X share buttons.
+   Remember to PURGE Cloudflare + cache plugin after Publish.
+   ============================================================ */
+
+/* 1) Fake number + "Shares" label: top bar, sticky bar,
+      desktop left vertical rail, and any theme variation. */
+.single-post .share-total,
+.single-post .post-info .right .share .share-total,
+.single-post .post-info .right .share .share-total span,
+.single-post .post-info .right .share .share-total .shares,
+.single-post .post-container .left-sticky .share-count .share-vertical .share-total,
+.single-post .post-container .left-sticky .share-count .share-vertical .share-total span,
+.single-post .post-container .left-sticky .share-count .share-vertical .share-total .shares,
+[class*="share-total"],
+[class*="share-total"] * {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* 2) ShareThis plugin's own counter bubble (also counts
+      bots/refresh hits, not completed shares). */
+.st-total,
+.st-inline-share-buttons .st-total,
+.st-sticky-share-buttons .st-total {
+    display: none !important;
+}

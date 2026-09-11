@@ -1,0 +1,66 @@
+/* ============================================================
+   Palika Live — show REAL share numbers (Additional CSS)
+   ------------------------------------------------------------
+   The theme stores the real count but DISPLAYS it multiplied
+   by 5. CSS cannot divide text, so for each article the real
+   number is set manually, keyed by its WordPress post ID.
+
+   WHERE TO FIND THE POST ID:
+   Edit the article in wp-admin and look at the browser address
+   bar:  post.php?post=130330&action=edit  -> ID is 130330.
+
+   After editing: Cloudflare -> Caching -> Purge Everything,
+   then purge your cache plugin.
+   ============================================================ */
+
+/* 1) Hide ShareThis' own counter bubble (counts bots) */
+.st-total { display: none !important; }
+
+/* 2) By default hide the theme's fake number on all articles */
+.single-post .share-total { display: none !important; }
+
+/* 3) Articles with a VERIFIED real number:
+      re-show the box and replace the fake digits.
+   Copy this whole block once per article; change the post ID
+   and the content: "..." number.                            */
+
+/* --- Prachanda article (post 130330), real shares: 120 --- */
+body.postid-130330 .share-total {
+    display: inline-block !important;
+    visibility: visible !important;
+}
+body.postid-130330 .share-total .shares {
+    display: block !important;
+    visibility: visible !important;
+    font-size: 12px !important;
+}
+body.postid-130330 .share-total span:not(.shares) {
+    font-size: 0 !important;           /* hides fake 600/630/650 */
+}
+body.postid-130330 .share-total span:not(.shares)::after {
+    content: "120";                    /* THE REAL NUMBER */
+    font-size: 20px !important;
+    line-height: 22px !important;
+    display: block;
+}
+
+/* --- TEMPLATE for other articles: replace PPPPP and NNN ---
+body.postid-PPPPP .share-total {
+    display: inline-block !important;
+    visibility: visible !important;
+}
+body.postid-PPPPP .share-total .shares {
+    display: block !important;
+    visibility: visible !important;
+    font-size: 12px !important;
+}
+body.postid-PPPPP .share-total span:not(.shares) {
+    font-size: 0 !important;
+}
+body.postid-PPPPP .share-total span:not(.shares)::after {
+    content: "NNN";
+    font-size: 20px !important;
+    line-height: 22px !important;
+    display: block;
+}
+------------------------------------------------------------ */
