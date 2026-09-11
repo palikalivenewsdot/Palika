@@ -1,0 +1,42 @@
+/* =====================================================================
+   Palika Live — Hide the FAKE "Shares" number in the palikalive theme.
+   Paste this into: WP Admin → Appearance → Customize → Additional CSS
+   (Why there and not in style.css? The theme does not enqueue the
+   theme-root style.css on the front end, so the rule you add there is
+   never loaded. Customizer "Additional CSS" is printed in <head> and
+   always wins. Remember to purge cache afterwards: Cloudflare + any
+   WordPress caching plugin.)
+   ===================================================================== */
+
+/* Fake counter that appears next to the share icons on news pages.
+   It exists in 3 places in the theme markup (sticky post header,
+   normal post header, desktop left vertical share rail). */
+.share-total,
+.single-post .post-info .right .share .share-total,
+.single-post .post-container .left-sticky .share-count .share-vertical .share-total {
+    display: none !important;
+}
+
+/* ---------------------------------------------------------------------
+   OPTIONAL — only enable if you are NOT going to configure ShareThis
+   properly. ShareThis' own click-counter bubble has class .st-total and
+   it also counts button clicks / bot hits, not real completed shares.
+   Remove the comment marks below to hide that one as well.
+   --------------------------------------------------------------------- */
+/*
+.st-total {
+    display: none !important;
+}
+*/
+
+/* ---------------------------------------------------------------------
+   OPTIONAL — hide the empty leftover ShareThis container injected at
+   the top of every article body (the <div class="sharethis-inline-
+   share-buttons"></div> block). Enable only if the ShareThis plugin is
+   deactivated and an empty gap/space remains.
+   --------------------------------------------------------------------- */
+/*
+.single-post .post-content .details > .sharethis-inline-share-buttons:empty {
+    display: none !important;
+}
+*/
