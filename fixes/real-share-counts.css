@@ -1,0 +1,26 @@
+/* =====================================================================
+   Palika Live — show REAL share-click counts.
+   Use THIS together with fixes/palika-real-shares.php (mu-plugin).
+   It REPLACES the earlier hide-fake-share-counts.css rule: instead of
+   removing the number, the theme's fake value is kept invisible until
+   the plugin's JavaScript writes the verified count (.palika-real),
+   so visitors never see the fabricated number.
+
+   Paste into: WP Admin → Appearance → Customize → Additional CSS.
+   Then purge Cloudflare + any cache plugin.
+   ===================================================================== */
+
+/* Hide the theme's fake number until the real count is rendered. */
+.share-total {
+    visibility: hidden !important;
+}
+
+/* Reveal once the plugin has filled in the verified total. */
+.share-total.palika-real {
+    visibility: visible !important;
+}
+
+/* ShareThis' own bubble also counts clicks/bots, not completed shares. */
+.st-total {
+    display: none !important;
+}

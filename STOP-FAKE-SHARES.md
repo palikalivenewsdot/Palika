@@ -186,3 +186,46 @@ If you want to display genuine share/interest counts:
   गर्नुहोस् र `fixes/cleanup.sql` अनुसार पुरानो डाटा सफा गर्नुहोस्।
 - Messenger बटन पनि बिग्रिएको छ (`YOUR_FB_APP_ID` placeholder) — त्यो
   हटाउन वा वास्तविक Facebook App ID राख्न नबिर्सनुहोस्।
+
+---
+
+## STEP 6 — Show a REAL share count instead
+
+Hiding the fake number (Steps 1–2) leaves no number at all. Facebook,
+WhatsApp and X no longer publish completed-share totals publicly, so the
+only universally honest number a site can show is **how many times real
+visitors clicked its own share buttons**. The plugin
+[`fixes/palika-real-shares.php`](fixes/palika-real-shares.php) counts those
+clicks server-side and displays the verified total in the theme's existing
+"Shares" spot.
+
+Why it cannot be faked:
+
+- counting only happens inside a real browser click handler — crawlers,
+  Facebook/Google/WhatsApp bots and simple page refreshes never trigger it;
+- the same visitor + network + article is counted at most once per 6 hours
+  (uses the Cloudflare visitor IP);
+- the number is stored in post meta (`_palika_real_shares`) and read over
+  the REST API after page load, so Cloudflare/cached pages always show the
+  current value;
+- counts start at 0 from activation — the old inflated figures were
+  fabricated and cannot be converted into real data.
+
+Installation:
+
+1. Copy `fixes/palika-real-shares.php` to
+   `wp-content/mu-plugins/palika-real-shares.php` (create the `mu-plugins`
+   folder if needed). It runs automatically; no activation click.
+2. In **Appearance → Customize → Additional CSS**, remove the earlier
+   "hide everything" CSS and paste
+   [`fixes/real-share-counts.css`](fixes/real-share-counts.css) instead
+   (it hides the fake value only until the real one loads).
+3. Purge Cloudflare + the WordPress cache and open an article. Click a
+   share button — the count increases by 1; reloading the page keeps the
+   real value (a second click within 6 hours from the same visitor is not
+   double-counted).
+4. **Optional official Facebook numbers:** create a free Facebook App and
+   add `define('PALIKA_FB_GRAPH_TOKEN', 'APP_ID|APP_SECRET');` to
+   `wp-config.php`. Facebook's official `engagement.share_count` is then
+   added to the total (cached 2 hours). WhatsApp and X have no public
+   count API for anyone.
