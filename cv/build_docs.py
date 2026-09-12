@@ -385,6 +385,110 @@ def build_pdf(md_path, out_path, doc_kind):
 
 
 # --------------------------------------------------------------------------- #
+# LEGACY .DOC (RTF container — opens natively in every Word version)
+# --------------------------------------------------------------------------- #
+def _rtf_esc(text):
+    out = []
+    for ch in text:
+        if ch in "\\{}":
+            out.append("\\" + ch)
+            continue
+        o = ord(ch)
+        if o < 128:
+            out.append(ch)
+        else:
+            try:
+                out.append("\\'%02x" % ch.encode("cp1252")[0])
+            except UnicodeEncodeError:
+                out.append("\\u%d?" % o)
+    return "".join(out)
+
+
+def _rtf_runs(text, size_halfpoints):
+    parts = []
+    for chunk, bold, italic in tokenize(text):
+        body = _rtf_esc(chunk)
+        pre = ("\\b " if bold else "") + ("\\i " if italic else "")
+        post = ("\\b0 " if bold else "") + ("\\i0 " if italic else "")
+        parts.append(f"{pre}{body}{post}")
+    return f"\\fs{size_halfpoints} " + "".join(parts)
+
+
+def build_doc(md_path, out_path, doc_kind):
+    """Emit a legacy Word .doc (RTF payload). A4, same layout rules as the .docx."""
+    paras = []
+    header_done = 0
+    skip_first_h1 = doc_kind == "letter"
+
+    for raw in read_lines(md_path):
+        kind, text = classify(raw, {})
+        if kind == "blank" or kind == "rule":
+            continue
+        if kind == "h1" and skip_first_h1:
+            continue
+
+        if kind == "h1":
+            paras.append("\\pard\\qc\\sb0\\sa40 " + _rtf_runs(text.upper(), 40) + "\\b0\\par")
+            header_done += 1
+            continue
+        if kind == "h2":
+            paras.append(
+                "\\pard\\sb180\\sa80\\brdrb\\brdrs\\brdrw10\\brsp40\\keepn "
+                + _rtf_runs(text.upper(), 22) + "\\b0\\par"
+            )
+            continue
+        if kind == "h3":
+            paras.append("\\pard\\sb130\\sa20\\keepn " + _rtf_runs(text, 21) + "\\b0\\par")
+            continue
+        if kind == "bullet":
+            paras.append(
+                "\\pard\\li284\\fi-142\\sa40\\fs20 \\'95\\tab " + _rtf_runs(text, 20) + "\\par"
+            )
+            continue
+        if kind == "quote":
+            paras.append("\\pard\\li340\\sa80 " + _rtf_runs(text, 20) + "\\i0\\par")
+            continue
+
+        # ordinary paragraph
+        if doc_kind == "cv" and header_done < 3:
+            header_done += 1
+            if header_done == 2:
+                paras.append("\\pard\\qc\\sa20 " + _rtf_runs(text, 23) + "\\b0\\par")
+            else:
+                paras.append("\\pard\\qc\\sa160 " + _rtf_runs(text, 19) + "\\par")
+            continue
+        if doc_kind == "letter":
+            if text.startswith("[DD"):
+                paras.append("\\pard\\sb240\\sa240 " + _rtf_runs(text, 21) + "\\par")
+            elif text.startswith("[") or text.isupper() or re.match(r"^\+?\d", text):
+                paras.append("\\pard\\sb0\\sa0 " + _rtf_runs(text, 21) + "\\par")
+            else:
+                paras.append("\\pard\\sa140 " + _rtf_runs(text, 21) + "\\par")
+            continue
+        paras.append("\\pard\\sa80 " + _rtf_runs(text, 21) + "\\par")
+
+    label = "Liladhar Koirala" if doc_kind == "cv" else "Liladhar Koirala - Cover letter JR4434"
+    footer = (
+        "{\\footer\\pard\\qc\\fs16 " + _rtf_esc(label)
+        + "  |  Page {\\field{\\*\\fldinst PAGE}}\\par}"
+    )
+    rtf = (
+        "{\\rtf1\\ansi\\ansicpg1252\\uc1\\deff0"
+        "{\\fonttbl{\\f0\\fswiss\\fcharset0 Calibri;}}"
+        "{\\colortbl;\\red0\\green0\\black;}"
+        "\\paperw11906\\paperh16838"
+        "\\margl1021\\margr1021\\margt1021\\margb1021"
+        + footer
+        + "\\f0\\fs21 "
+        + "\n".join(paras)
+        + "}"
+    )
+    with open(out_path, "w", encoding="ascii") as fh:
+        fh.write(rtf)
+    return out_path
+
+
+# --------------------------------------------------------------------------- #
 def main():
     jobs = [
         (CV_MD, os.path.join(HERE, "Liladhar_Koirala_CV_EMBL_JR4434"), "cv"),
@@ -396,6 +500,11 @@ def main():
             continue
         build_docx(md, stem + ".docx", kind)
         print("wrote", stem + ".docx")
+        try:
+            build_doc(md, stem + ".doc", kind)
+            print("wrote", stem + ".doc")
+        except Exception as exc:
+            print(f"doc skipped ({exc})", file=sys.stderr)
         try:
             build_pdf(md, stem + ".pdf", kind)
             print("wrote", stem + ".pdf")

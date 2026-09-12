@@ -8,10 +8,11 @@ on 20/09/2026** and requires **both a cover letter and a CV**, submitted through
 
 | File | Purpose |
 |---|---|
-| `Liladhar_Koirala_CV_EMBL_JR4434.md` | CV source — edit this one; the Word and PDF files are generated from it |
+| `Liladhar_Koirala_CV_EMBL_JR4434.md` | CV source — edit this one; the Word (.docx/.doc) and PDF files are generated from it |
 | `Liladhar_Koirala_CV_EMBL_JR4434.docx` | ATS-safe Word CV (single column, standard headings, no tables, no text boxes) — **submit this** |
+| `Liladhar_Koirala_CV_EMBL_JR4434.doc` | Legacy Word 97–2003 format (RTF container) for portals that only accept `.doc`; opens natively in every Word version |
 | `Liladhar_Koirala_CV_EMBL_JR4434.pdf` | PDF copy for portals that prefer PDF |
-| `Cover_Letter_EMBL_JR4434.md` / `.docx` / `.pdf` | One-page cover letter mapped to the JD's essential criteria |
+| `Cover_Letter_EMBL_JR4434.md` / `.docx` / `.doc` / `.pdf` | One-page cover letter mapped to the JD's essential criteria |
 | `jd-keyword-mapping.md` | Requirement-by-requirement crosswalk + keyword checklist; read this before you submit |
 | `build_docs.py` | Regenerates the `.docx` and `.pdf` from the Markdown sources |
 | `placeholders.md` | Single list of every `[bracketed]` item you must replace |
@@ -74,8 +75,8 @@ python3 -m venv .venv && .venv/bin/pip install python-docx fpdf2   # once
 .venv/bin/python cv/build_docs.py
 ```
 
-Edit the `.md` files, re-run the script, and the `.docx`/`.pdf` are rebuilt. Do not edit the `.docx` by hand unless you
-keep the layout rules below.
+Edit the `.md` files, re-run the script, and the `.docx`, `.doc` and `.pdf` are rebuilt. Do not edit the `.docx` by
+hand unless you keep the layout rules below.
 
 ## ATS and formatting rules used here
 
