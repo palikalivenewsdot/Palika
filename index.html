@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>पालिका लाइभ — नयाँ नेभिगेसन प्रोटोटाइप</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand:#8f1d2c; --brand-dark:#6f1622; --brand-deep:#571019;
+    --gold:#c9992e; --green:#0e7a4d;
+    --ink:#1c1416; --ink-soft:#5a4c50;
+    --paper:#faf7f2; --card:#ffffff;
+    --line:#e8dfd3; --line-strong:#d9cdbd;
+    --chip:#f3ece2;
+    --radius:10px;
+    --shadow:0 18px 45px -18px rgba(31,10,14,.35), 0 4px 14px -6px rgba(31,10,14,.18);
+    --shadow-sm:0 8px 22px -12px rgba(31,10,14,.28);
+    --font:'Mukta','Noto Sans Devanagari',system-ui,'Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--font); background:#efe9df; color:var(--ink);
+    -webkit-font-smoothing:antialiased; font-size:16px; line-height:1.55;
+  }
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer}
+  .wrap{max-width:1360px;margin:0 auto;padding:0 18px}
+
+  /* ============ डेमो कन्ट्रोल बार ============ */
+  .demo-bar{
+    position:sticky;top:0;z-index:200;background:#171014;color:#f3e9dc;
+    border-bottom:1px solid #000;
+  }
+  .demo-bar .wrap{display:flex;align-items:center;gap:14px;padding:9px 18px;flex-wrap:wrap}
+  .demo-tag{
+    background:var(--gold);color:#241a08;font-weight:800;font-size:12px;
+    letter-spacing:.4px;padding:3px 10px;border-radius:999px;white-space:nowrap;
+  }
+  .demo-title{font-size:13.5px;font-weight:600;color:#e8dcc8}
+  .demo-title b{color:#fff}
+  .seg{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+  .seg-group{display:flex;background:#241b20;border-radius:999px;padding:3px}
+  .seg button{
+    background:transparent;border:0;color:#cfc2b6;font-size:12.5px;font-weight:700;
+    padding:5px 13px;border-radius:999px;white-space:nowrap;
+  }
+  .seg button.active{background:var(--brand);color:#fff}
+  .seg button:hover:not(.active){color:#fff}
+  .seg-label{font-size:11px;color:#8d8076;align-self:center}
+
+  /* ============ स्टेज ============ */
+  .stage{
+    position:relative;background:var(--paper);margin:0 auto;
+    max-width:1320px;height:calc(100vh - 52px);overflow:hidden auto;
+    box-shadow:0 0 60px rgba(20,8,12,.35);border-left:1px solid var(--line);border-right:1px solid var(--line);
+  }
+  .stage.mobile{max-width:400px}
+  .stage.mobile .desktop-only{display:none!important}
+
+  /* ============ टिकर ============ */
+  .ticker{background:var(--brand-deep);color:#f7ead9;display:flex;align-items:center;height:36px;overflow:hidden}
+  .ticker .tk-chip{
+    background:#e8b23c;color:#221705;font-weight:800;font-size:12px;letter-spacing:.5px;
+    padding:4px 12px;margin:0 14px;border-radius:3px;flex:0 0 auto;position:relative;z-index:2;
+  }
+  .ticker .tk-scroll{overflow:hidden;flex:1;white-space:nowrap}
+  .ticker .tk-scroll span{
+    display:inline-block;padding-left:100%;font-size:14px;font-weight:600;
+    animation:tk 38s linear infinite;
+  }
+  @keyframes tk{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+
+  /* ============ हेडर ============ */
+  .masthead{background:var(--card);border-bottom:1px solid var(--line)}
+  .mast-row{display:flex;align-items:center;gap:16px;padding:14px 18px}
+  .logo{display:flex;align-items:center;gap:11px}
+  .logo .logo-badge{
+    width:46px;height:46px;border-radius:11px;flex:0 0 auto;
+    background:linear-gradient(135deg,var(--brand) 0%,var(--brand-deep) 100%);
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:22px;box-shadow:var(--shadow-sm);
+  }
+  .logo .logo-text{line-height:1.12}
+  .logo .logo-text .p1{font-size:21px;font-weight:800;color:var(--brand);letter-spacing:.3px}
+  .logo .logo-text .p1 em{font-style:normal;color:var(--ink)}
+  .logo .logo-text .p2{font-size:11.5px;color:var(--ink-soft);font-weight:600;letter-spacing:.3px}
+  .mast-meta{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .mast-date{text-align:right;line-height:1.3}
+  .mast-date .d1{font-size:13px;font-weight:700}
+  .mast-date .d2{font-size:11.5px;color:var(--ink-soft)}
+  .mast-search{
+    width:40px;height:40px;border-radius:50%;border:1px solid var(--line-strong);
+    background:var(--paper);display:flex;align-items:center;justify-content:center;
+    font-size:15px;color:var(--ink-soft);
+  }
+  .burger{
+    display:none;width:42px;height:42px;border-radius:9px;border:1px solid var(--line-strong);
+    background:var(--paper);flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  }
+  .burger i{display:block;width:18px;height:2px;background:var(--brand);border-radius:2px}
+
+  /* ============ डेस्कटप नेभ ============ */
+  .nav{position:relative;background:var(--card);border-top:1px solid var(--line);border-bottom:2px solid var(--brand)}
+  .nav-inner{display:flex;align-items:stretch;gap:2px}
+  .nav-item{position:relative}
+  .nav-link{
+    display:flex;align-items:center;gap:6px;padding:13px 15px;font-size:15px;font-weight:700;
+    color:var(--ink);white-space:nowrap;transition:color .15s;
+  }
+  .nav-link .caret{font-size:9px;color:var(--gold);transition:transform .2s}
+  .nav-link:hover{color:var(--brand)}
+  .nav-item.open .nav-link{color:var(--brand)}
+  .nav-item.open .caret{transform:rotate(180deg)}
+  .badge-new{
+    font-size:9.5px;font-weight:800;color:#fff;background:var(--green);
+    padding:1.5px 6px;border-radius:999px;letter-spacing:.3px;align-self:flex-start;margin-top:-3px;
+  }
+  .nav-cta{
+    margin-left:auto;display:flex;align-items:center;padding:0 10px;
+  }
+  .nav-cta a{
+    display:flex;align-items:center;gap:7px;background:var(--brand);color:#fff;
+    font-size:13px;font-weight:800;padding:7px 14px;border-radius:999px;transition:background .15s;
+  }
+  .nav-cta a:hover{background:var(--brand-deep)}
+  .nav-cta .dot{width:7px;height:7px;background:#ffd166;border-radius:50%;animation:blink 1.6s infinite}
+  @keyframes blink{50%{opacity:.25}}
+
+  /* ============ ड्रपडाउन ============ */
+  .dropdown{
+    position:absolute;top:100%;left:0;min-width:300px;background:var(--card);
+    border:1px solid var(--line);border-top:3px solid var(--brand);border-radius:0 0 var(--radius) var(--radius);
+    box-shadow:var(--shadow);padding:18px;opacity:0;visibility:hidden;transform:translateY(8px);
+    transition:opacity .18s,transform .18s,visibility .18s;z-index:100;
+  }
+  .nav-item.open .dropdown{opacity:1;visibility:visible;transform:translateY(0)}
+  .dd-title{font-size:11.5px;font-weight:800;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin:0 0 8px}
+  .dd-link{
+    display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;
+    font-size:14.5px;font-weight:600;color:var(--ink);transition:background .12s,color .12s;
+  }
+  .dd-link:hover{background:#f7efe6;color:var(--brand)}
+  .dd-link .b-new{font-size:9px;font-weight:800;color:#fff;background:var(--green);padding:1px 6px;border-radius:999px}
+  .dd-desc{font-size:11.5px;color:var(--ink-soft);margin:0 10px 10px}
+
+  /* पालिका मेगा-मेनु */
+  .mega{
+    position:absolute;top:100%;left:0;right:0;background:var(--card);z-index:100;
+    border:1px solid var(--line);border-top:3px solid var(--brand);
+    border-radius:0 0 var(--radius) var(--radius);box-shadow:var(--shadow);
+    opacity:0;visibility:hidden;transform:translateY(8px);
+    transition:opacity .18s,transform .18s,visibility .18s;
+  }
+  .nav-item.open .mega{opacity:1;visibility:visible;transform:translateY(0)}
+  .mega-grid{display:grid;grid-template-columns:1.25fr .9fr .9fr 1fr;gap:0;padding:22px}
+  .mega-col{padding:0 18px;border-right:1px solid var(--line)}
+  .mega-col:first-child{padding-left:0}
+  .mega-col:last-child{border-right:0;padding-right:0}
+  .mega-search-head{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+  .mega-search-head .t{font-size:16px;font-weight:800;color:var(--brand)}
+  .mega-search-head .s{font-size:11.5px;color:var(--ink-soft)}
+  .search-box{position:relative}
+  .search-box input{
+    width:100%;border:2px solid var(--brand);border-radius:9px;padding:11px 42px 11px 13px;
+    font-family:inherit;font-size:15px;font-weight:600;background:#fff;outline:none;color:var(--ink);
+  }
+  .search-box input::placeholder{color:#a99a8c;font-weight:500}
+  .search-box .go{
+    position:absolute;right:6px;top:50%;transform:translateY(-50%);
+    width:32px;height:32px;border:0;border-radius:8px;background:var(--brand);color:#fff;font-size:14px;
+  }
+  .suggest{
+    position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid var(--line-strong);
+    border-radius:9px;box-shadow:var(--shadow-sm);overflow:hidden;z-index:5;display:none;
+  }
+  .suggest.on{display:block}
+  .suggest .row{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:9px 13px;font-size:14px;font-weight:600;cursor:pointer;border-bottom:1px solid #f4ede4;
+  }
+  .suggest .row:last-child{border-bottom:0}
+  .suggest .row:hover,.suggest .row.hover{background:#f7efe6;color:var(--brand)}
+  .suggest .prov{font-size:10.5px;color:var(--ink-soft);background:var(--chip);padding:2px 8px;border-radius:999px;font-weight:700}
+  .suggest .empty{padding:12px 13px;font-size:13.5px;color:var(--ink-soft)}
+  .quick-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .quick-chips span{font-size:11.5px;color:var(--ink-soft);align-self:center}
+  .quick-chips button{
+    border:1px solid var(--line-strong);background:var(--paper);color:var(--ink);
+    font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;
+  }
+  .quick-chips button:hover{border-color:var(--brand);color:var(--brand)}
+  .mega-foot-note{font-size:11.5px;color:var(--ink-soft);margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+  .mega-foot-note b{color:var(--brand)}
+
+  .feat-card{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--paper)}
+  .feat-card img{width:100%;height:110px;object-fit:cover;display:block}
+  .feat-card .fc-body{padding:11px 13px}
+  .feat-card .fc-tag{font-size:10.5px;font-weight:800;color:var(--brand);letter-spacing:.5px}
+  .feat-card .fc-title{font-size:14px;font-weight:700;line-height:1.4;margin:4px 0 8px}
+  .feat-card .fc-link{font-size:12.5px;font-weight:800;color:var(--brand)}
+  .feat-stats{display:flex;gap:8px;margin-top:12px}
+  .feat-stats div{flex:1;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;text-align:center}
+  .feat-stats b{display:block;font-size:16px;color:var(--brand)}
+  .feat-stats span{font-size:10.5px;color:var(--ink-soft)}
+
+  /* ============ मोबाइल ड्रअर ============ */
+  .drawer{
+    position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(20,8,12,.45);
+    z-index:150;opacity:0;visibility:hidden;transition:opacity .2s;
+  }
+  .stage.drawer-open .drawer{opacity:1;visibility:visible}
+  .drawer-panel{
+    position:absolute;top:0;left:0;bottom:0;width:min(86%,340px);background:var(--paper);
+    transform:translateX(-102%);transition:transform .25s;overflow:hidden auto;
+    display:flex;flex-direction:column;box-shadow:var(--shadow);
+  }
+  .stage.drawer-open .drawer-panel{transform:translateX(0)}
+  .drawer-head{
+    background:var(--brand);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;
+  }
+  .drawer-head .t{font-size:16px;font-weight:800}
+  .drawer-head .x{margin-left:auto;background:rgba(255,255,255,.16);border:0;color:#fff;width:32px;height:32px;border-radius:8px;font-size:15px}
+  .drawer-search{padding:14px 14px 4px}
+  .drawer-search .search-box input{border-width:1.5px;font-size:14px;padding:10px 40px 10px 12px}
+  .acc{padding:4px 10px 20px}
+  .acc-item{border-bottom:1px solid var(--line)}
+  .acc-link{
+    display:flex;align-items:center;justify-content:space-between;width:100%;
+    background:none;border:0;text-align:left;padding:13px 8px;font-size:15.5px;font-weight:700;color:var(--ink);
+  }
+  .acc-link .c{font-size:10px;color:var(--gold);transition:transform .2s}
+  .acc-item.open .acc-link .c{transform:rotate(180deg)}
+  .acc-item.open .acc-link{color:var(--brand)}
+  .acc-sub{display:none;padding:2px 8px 12px}
+  .acc-item.open .acc-sub{display:block}
+  .acc-sub .g-title{font-size:10.5px;font-weight:800;color:var(--gold);letter-spacing:1px;margin:10px 0 4px}
+  .acc-sub a{display:flex;align-items:center;gap:7px;padding:7px 6px;font-size:14px;font-weight:600;color:var(--ink-soft)}
+  .acc-sub a:hover{color:var(--brand)}
+  .acc-cta{margin:14px 10px}
+  .acc-cta a{display:flex;justify-content:center;gap:8px;background:var(--brand);color:#fff;font-weight:800;font-size:14px;padding:12px;border-radius:10px}
+
+  /* ============ कन्टेन्ट मकअप ============ */
+  .content{padding:20px 18px 40px}
+  .crumb{font-size:12.5px;color:var(--ink-soft);margin-bottom:12px}
+  .crumb b{color:var(--brand)}
+  .hero-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:18px}
+  .hero-card{position:relative;border-radius:var(--radius);overflow:hidden;background:#000;min-height:340px;display:flex;align-items:flex-end}
+  .hero-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.92}
+  .hero-card .shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(12,4,6,.88))}
+  .hero-card .hc-body{position:relative;padding:20px;color:#fff;max-width:640px}
+  .cat-chip{display:inline-flex;align-items:center;gap:6px;background:var(--brand);color:#fff;font-size:11.5px;font-weight:800;padding:4px 11px;border-radius:999px;letter-spacing:.4px}
+  .cat-chip.gold{background:var(--gold);color:#241a08}
+  .cat-chip.green{background:var(--green)}
+  .cat-chip.plain{background:rgba(255,255,255,.16);backdrop-filter:blur(4px)}
+  .hc-title{font-size:24px;font-weight:800;line-height:1.35;margin:10px 0 6px}
+  .hc-dek{font-size:13.5px;opacity:.85;max-width:540px}
+  .side-list{display:flex;flex-direction:column;gap:12px}
+  .side-item{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:10px}
+  .side-item img{width:86px;height:64px;object-fit:cover;border-radius:7px;flex:0 0 auto}
+  .side-item .st{font-size:13.5px;font-weight:700;line-height:1.42}
+  .side-item .st:hover{color:var(--brand)}
+  .side-item .sc{font-size:10.5px;font-weight:800;color:var(--gold);letter-spacing:.6px;margin-bottom:2px}
+  .side-item.txt{display:block;padding:14px}
+  .sec-title{
+    display:flex;align-items:center;gap:10px;margin:26px 0 12px;font-size:19px;font-weight:800;color:var(--brand-deep);
+  }
+  .sec-title::after{content:"";flex:1;height:1px;background:var(--line-strong)}
+  .sec-title a{font-size:12px;font-weight:700;color:var(--ink-soft);flex:0 0 auto}
+  .sec-title a:hover{color:var(--brand)}
+  .card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+  .card img{width:100%;height:150px;object-fit:cover;display:block}
+  .card .c-body{padding:13px 15px 16px;display:flex;flex-direction:column;gap:7px;flex:1}
+  .card .c-title{font-size:15px;font-weight:700;line-height:1.45}
+  .card .c-title:hover{color:var(--brand)}
+  .card .c-dek{font-size:12.5px;color:var(--ink-soft)}
+  .card .c-foot{margin-top:auto;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-soft)}
+  .card .c-foot b{color:var(--brand)}
+  .card.txt-only .c-body{background:linear-gradient(160deg,#fff 0%,#faf2e8 100%)}
+
+  /* ============ नोट सेक्सन (स्टेज बाहिर) ============ */
+  .notes{padding:34px 0 60px}
+  .notes .wrap{max-width:1180px}
+  .notes h2{font-size:22px;font-weight:800;color:var(--brand-deep);margin-bottom:4px}
+  .notes .lead{font-size:14.5px;color:var(--ink-soft);margin-bottom:22px;max-width:820px}
+  .note-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .note-card{background:#fdfbf7;border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:8px;padding:16px}
+  .note-card h3{font-size:15px;font-weight:800;color:var(--brand-deep);margin-bottom:8px}
+  .note-card ul{list-style:none}
+  .note-card li{font-size:13px;color:var(--ink-soft);padding:3.5px 0 3.5px 18px;position:relative}
+  .note-card li::before{content:"▸";position:absolute;left:2px;color:var(--gold);font-weight:800}
+  .map-table{width:100%;border-collapse:collapse;margin-top:18px;background:#fdfbf7;border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:13.5px}
+  .map-table th{background:var(--brand-deep);color:#f7ead9;text-align:left;padding:10px 14px;font-size:12.5px;letter-spacing:.5px}
+  .map-table td{padding:9px 14px;border-top:1px solid var(--line);vertical-align:top}
+  .map-table td b{color:var(--brand-deep)}
+  .map-table .ok{color:var(--green);font-weight:800;font-size:12px;white-space:nowrap}
+  .map-table .nw{color:var(--gold);font-weight:800;font-size:12px;white-space:nowrap}
+  .steps{display:flex;gap:14px;margin-top:20px;flex-wrap:wrap}
+  .step{flex:1;min-width:240px;background:var(--brand-deep);color:#f7ead9;border-radius:10px;padding:16px 18px}
+  .step b{display:block;font-size:12px;letter-spacing:1.5px;color:var(--gold);margin-bottom:5px}
+  .step p{font-size:13.5px;opacity:.95}
+  .foot{font-size:12px;color:var(--ink-soft);text-align:center;padding:18px;border-top:1px solid var(--line-strong)}
+
+  /* ============ रेस्पोन्सिभ (वास्तविक सानो स्क्रिन) ============ */
+  @media (max-width:760px){
+    .nav-inner,.nav-cta{display:none}
+    .burger{display:flex}
+    .mast-meta .mast-date,.mast-search{display:none}
+    .hero-grid{grid-template-columns:1fr}
+    .card-grid{grid-template-columns:1fr}
+    .note-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= डेमो कन्ट्रोल ================= -->
+<div class="demo-bar">
+  <div class="wrap">
+    <span class="demo-tag">प्रोटोटाइप v0.1</span>
+    <span class="demo-title">पालिका लाइभ — <b>नेभिगेसन रिडिजाइन</b> · शीर्षकहरू वास्तविक, तस्बिरहरू प्लेसहोल्डर</span>
+    <div class="seg">
+      <span class="seg-label">मेनु मोडल:</span>
+      <div class="seg-group" id="modelSeg">
+        <button data-model="hybrid" class="active">१ · हाइब्रिड ⭐</button>
+        <button data-model="clean">२ · स्वच्छ न्युज</button>
+        <button data-model="audience">३ · दर्शक-आधारित</button>
+      </div>
+      <span class="seg-label">भ्यू:</span>
+      <div class="seg-group" id="viewSeg">
+        <button data-view="desktop" class="active">डेस्कटप</button>
+        <button data-view="mobile">मोबाइल</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= स्टेज ================= -->
+<div class="stage" id="stage">
+
+  <!-- टिकर -->
+  <div class="ticker">
+    <span class="tk-chip">ब्रेकिङ</span>
+    <div class="tk-scroll">
+      <span>भोटेकोशी बाढीपीडितका लागि प्रधानमन्त्री राहत कोषमा १३ अर्ब २३ करोड जम्मा &nbsp;·&nbsp; कर्णालीमा सरुवा विवाद अदालतसम्म &nbsp;·&nbsp; रावल आयोगले औंल्याएको अतिक्रमित जग्गा सरकारको नाममा कायम गर्ने निर्णय &nbsp;·&nbsp; काठमाडौं महानगरले जलन उपचारका लागि २ करोड विनियोजन &nbsp;·&nbsp; प्रदेश कर्मचारीको तलब संघीय सरह बनाउने तयारी</span>
+    </div>
+  </div>
+
+  <!-- हेडर -->
+  <header class="masthead">
+    <div class="mast-row">
+      <a class="logo" href="#">
+        <span class="logo-badge">पा</span>
+        <span class="logo-text">
+          <span class="p1">पालिका<em>लाइभ</em></span><br>
+          <span class="p2">स्थानीय सरकारको आवाज</span>
+        </span>
+      </a>
+      <div class="mast-meta">
+        <div class="mast-date">
+          <div class="d1">शनिबार, भदौ २६, २०८३</div>
+          <div class="d2">काठमाडौं · 12 Sep 2026</div>
+        </div>
+        <button class="mast-search" title="खोज">🔍</button>
+        <button class="burger" id="burger" aria-label="मेनु"><i></i><i></i><i></i></button>
+      </div>
+    </div>
+
+    <!-- डेस्कटप नेभ (JS बाट रेन्डर) -->
+    <nav class="nav" id="nav">
+      <div class="nav-inner" id="navInner"></div>
+    </nav>
+  </header>
+
+  <!-- मोबाइल ड्रअर -->
+  <div class="drawer" id="drawer">
+    <div class="drawer-panel">
+      <div class="drawer-head">
+        <span class="t">☰ मेनु</span>
+        <button class="x" id="drawerClose">✕</button>
+      </div>
+      <div class="drawer-search">
+        <div class="search-box">
+          <input type="text" id="drawerPalikaInput" placeholder="आफ्नो पालिका खोज्नुहोस्…">
+          <button class="go">→</button>
+          <div class="suggest" id="drawerSuggest"></div>
+        </div>
+      </div>
+      <div class="acc" id="acc"></div>
+      <div class="acc-cta"><a href="#"><span class="dot"></span> सुशासन वाच: उजुरी/सूचना पठाउनुहोस्</a></div>
+    </div>
+  </div>
+
+  <!-- ================= कन्टेन्ट मकअप ================= -->
+  <main class="content">
+    <div class="crumb">गृहपृष्ठ · <b>ताजा अपडेट</b></div>
+
+    <div class="hero-grid">
+      <div class="hero-card">
+        <img src="assets/flood.jpg" alt="भोटेकोशी बाढी">
+        <div class="shade"></div>
+        <div class="hc-body">
+          <span class="cat-chip green">विपद् व्यवस्थापन</span>
+          <div class="hc-title">भोटेकोशी बाढीले ९ हजार विद्यार्थी प्रभावित, शिक्षा क्षेत्र उकास्न साढे २ अर्बभन्दा बढी लाग्ने</div>
+          <div class="hc-dek">प्रभावित स्थानीय तहको विद्यालय पुनर्निर्माण, सिकाइ सामग्री र मनोसामाजिक परामर्शसम्म — क्षतिको लेखाजोखापछि पुनर्स्थापना योजना बनाउने तयारी।</div>
+        </div>
+      </div>
+      <div class="side-list">
+        <div class="side-item">
+          <img src="assets/prachanda.jpg" alt="">
+          <div>
+            <div class="sc">राजनीति</div>
+            <div class="st">प्रचण्ड भन्छन्– 'अहिलेको सत्ता नेपालीको हातमा छैन, देशै रहन्छ कि रहँदैन भन्ने चिन्ता छ !'</div>
+          </div>
+        </div>
+        <div class="side-item">
+          <img src="assets/nrb.jpg" alt="">
+          <div>
+            <div class="sc">अर्थ पालिका</div>
+            <div class="st">प्रधानमन्त्री राहत कोषमा जम्मा भयो १३ अर्ब २३ करोड</div>
+          </div>
+        </div>
+        <div class="side-item">
+          <img src="assets/karmachari.webp" alt="">
+          <div>
+            <div class="sc">कर्मचारी प्रशासन</div>
+            <div class="st">कर्णालीमा सरुवा आतंक: विधि मिच्दै ४ सय कर्मचारी हेरफेर, अदालतसम्म पुग्यो विवाद</div>
+          </div>
+        </div>
+        <div class="side-item">
+          <img src="assets/mayor.jpg" alt="">
+          <div>
+            <div class="sc">सुशासन वाच</div>
+            <div class="st">सरकारी गाडी लिएर क्यासिनो पसेका सखुवाप्रसौनीका अध्यक्ष यादव पक्राउ</div>
+          </div>
+        </div>
+        <div class="side-item">
+          <img src="assets/road.jpg" alt="">
+          <div>
+            <div class="sc">विकास / पूर्वाधार</div>
+            <div class="st">'बस र्यापिड ट्रान्जिट मोडल' कार्यान्वयनका लागि ऐन निर्माणको तयारीमा: मन्त्री लम्साल</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-title">पालिका खबर <a href="#">सबै →</a></div>
+    <div class="card-grid">
+      <div class="card">
+        <img src="assets/flood.jpg" alt="">
+        <div class="c-body">
+          <div class="c-title">बाढीले बगाएको गल्छीको जीवन: राहतभन्दा ठूलो चिन्ता पुनःस्थापना</div>
+          <div class="c-dek">गल्छी गाउँपालिकामा बस्ती नै विस्थापित; सुरक्षित बस्ती विकासको माग।</div>
+          <div class="c-foot"><b>विपद् व्यवस्थापन</b> · २ मिनेट पठन</div>
+        </div>
+      </div>
+      <div class="card">
+        <img src="assets/karmachari.webp" alt="">
+        <div class="c-body">
+          <div class="c-title">शाखा अधिकृतको सरुवा: ३० स्थानीय तहमा, १६ सिंहदरबारमा</div>
+          <div class="c-dek">सामान्य प्रशासन मन्त्रालयको निर्णय; बाढी प्रभावित पालिकामा प्राथमिकता।</div>
+          <div class="c-foot"><b>कर्मचारी प्रशासन</b> · ३ मिनेट पठन</div>
+        </div>
+      </div>
+      <div class="card">
+        <img src="assets/road.jpg" alt="">
+        <div class="c-body">
+          <div class="c-title">'बस र्यापिड ट्रान्जिट मोडल' कार्यान्वयनका लागि ऐन निर्माणको तयारीमा: मन्त्री लम्साल</div>
+          <div class="c-dek">महानगरका सडक सुधार योजनासँगै कानुनी खाका तयार हुँदै।</div>
+          <div class="c-foot"><b>विकास / पूर्वाधार</b> · ४ मिनेट पठन</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-title">सुशासन वाच <a href="#">सबै →</a></div>
+    <div class="card-grid">
+      <div class="card">
+        <img src="assets/mayor.jpg" alt="">
+        <div class="c-body">
+          <div class="c-title">सरकारी गाडी लिएर क्यासिनो पसेका सखुवाप्रसौनीका अध्यक्ष यादव पक्राउ</div>
+          <div class="c-dek">पालिकाको सवारीसाधन दुरुपयोगको उजुरीपछि प्रहरीको अनुसन्धान।</div>
+          <div class="c-foot"><b>सुशासन वाच</b> · ट्र्याकरमा फलो गर्नुहोस्</div>
+        </div>
+      </div>
+      <div class="card txt-only">
+        <div class="c-body">
+          <div class="c-title">रावल आयोगले औंल्याएको अतिक्रमित सबै जग्गा सरकारको नाममा कायम गर्ने निर्णय</div>
+          <div class="c-dek">आयोगको प्रतिवेदन कार्यान्वयनको पहिलो चरण — १८०+ स्थानीय तहका फाइल अद्यावधिक हुँदै।</div>
+          <div class="c-foot"><b>सुशासन वाच</b> · सिंहदरबार ब्युरो</div>
+        </div>
+      </div>
+      <div class="card txt-only">
+        <div class="c-body">
+          <div class="c-title">अतिक्रमित गुठी मातहत पोखरीमा पुनः डोजर चल्ने, आर्थिक लेनदेनको आरोप</div>
+          <div class="c-dek">स्थानीयको आपत्तिबीच काम रोकिएन; सुशासन वाचले फलोअप जारी राख्नेछ।</div>
+          <div class="c-foot"><b>सुशासन वाच</b> · ट्र्याकरमा फलो गर्नुहोस्</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ================= स्पष्टीकरण सेक्सन ================= -->
+<section class="notes">
+  <div class="wrap">
+    <h2>यो मेनु किन ? के–के परिवर्तन भयो ?</h2>
+    <p class="lead">माथि तीन वटै मोडल स्विच गरेर हेर्नुहोस्। सबै मोडलमा पुराना क्याटेगरीका URL जोगाइएको छ — लेबल मात्र परिवर्तन हुन्छ, slug उही रहन्छ (SEO सुरक्षित)। <b>सिफारिस: मोडल १ (हाइब्रिड)।</b></p>
+
+    <div class="note-grid">
+      <div class="note-card">
+        <h3>मोडल १ · हाइब्रिड (सिफारिस ⭐)</h3>
+        <ul>
+          <li>मुख्य मेनु ९ ओटामा; "गृहपृष्ठ" लोगोले नै बोक्छ</li>
+          <li><b>पालिका ▾</b> मेगा-मेनु: सर्च + प्रोफाइल + डाटा + विषय</li>
+          <li>७ वटै प्रदेशका छुट्टै पेज — आफ्नोपन</li>
+          <li>समाचार → "ताजा"; विचार+बार्ता+फिचर → "बहस ▾"</li>
+          <li>भिडियो र "नयाँ" सेक्सन थपिने (हरियो ब्याज हेर्नुहोस्)</li>
+        </ul>
+      </div>
+      <div class="note-card">
+        <h3>मोडल २ · स्वच्छ न्युज</h3>
+        <ul>
+          <li>हालकै ९ ओटा — सबैभन्दा कम जोखिम</li>
+          <li>ताजा अपडेट · स्थानीय तह · प्रदेश ▾ · राजनीति · सुशासन · अर्थ पालिका · समाज · बहस ▾ · फिचर</li>
+          <li>विचार+पालिका बार्ता "बहस ▾" भित्र</li>
+          <li>पालिका मेगा-मेनु प्रयोग गर्न सकिने/नसकिने — छनोटमा</li>
+        </ul>
+      </div>
+      <div class="note-card">
+        <h3>मोडल ३ · दर्शक-आधारित</h3>
+        <ul>
+          <li>सबैभन्दा फरक पहिचान — "सिभिक टुल" अनुभव</li>
+          <li>नागरिक · जनप्रतिनिधि · कर्मचारी · सुशासन वाच · बजेट/डाटा · राजनीति · समाचार</li>
+          <li>पाठक आफ्नो भूमिकाबाट छिर्छन्</li>
+          <li>जोखिम: गुगलबाट आउने नयाँ पाठकलाई बुझाउन समय लाग्छ</li>
+        </ul>
+      </div>
+    </div>
+
+    <table class="map-table">
+      <tr><th>अहिलेको मेनु</th><th>नयाँ मेनुमा</th><th>URL</th><th>स्थिति</th></tr>
+      <tr><td>समाचार</td><td><b>ताजा</b> (मोडल १/२) · समाचार (मोडल ३)</td><td>/main_news/</td><td class="ok">यथावत्</td></tr>
+      <tr><td>स्थानीय तह</td><td><b>पालिका ▾</b> भित्र पहिलो लिङ्क</td><td>/local-level/</td><td class="ok">यथावत्</td></tr>
+      <tr><td>पालिका खोज</td><td><b>पालिका ▾</b> मेगा-मेनुको मुटु — नेभमै सर्च बक्स</td><td>/research/</td><td class="nw">अपग्रेड हुने</td></tr>
+      <tr><td>राजनीति</td><td><b>राजनीति</b></td><td>/politics/</td><td class="ok">यथावत्</td></tr>
+      <tr><td>समाज</td><td><b>समाज</b></td><td>/society/</td><td class="ok">यथावत्</td></tr>
+      <tr><td>पालिका बार्ता</td><td><b>बहस ▾</b> भित्र</td><td>/interview/</td><td class="ok">यथावत्</td></tr>
+      <tr><td>सुशासन</td><td><b>सुशासन वाच</b> — "वाच/ट्र्याकर" पहिचानसहित</td><td>/good-governance/</td><td class="nw">लेबल मात्र</td></tr>
+      <tr><td>विचार</td><td><b>बहस ▾</b> भित्र</td><td>/opinion/</td><td class="ok">यथावत्</td></tr>
+      <tr><td>अर्थ पालिका</td><td><b>अर्थ पालिका</b></td><td>/economy/</td><td class="ok">यथावत्</td></tr>
+      <tr><td>फिचर</td><td><b>बहस ▾</b> भित्र</td><td>/photo/</td><td class="ok">यथावत्</td></tr>
+      <tr><td>—</td><td><b>प्रदेश ▾</b> (७ प्रदेश + संघ)</td><td>/province/koshi/ … (नयाँ)</td><td class="nw">नयाँ</td></tr>
+      <tr><td>—</td><td><b>पालिका प्रोफाइल · जनप्रतिनिधि · डाटा हब</b></td><td>/palika/kathmandu/ … (नयाँ)</td><td class="nw">नयाँ</td></tr>
+      <tr><td>—</td><td><b>कर्मचारी प्रशासन · विकास/पूर्वाधार · शिक्षा–स्वास्थ्य · विपद्</b></td><td>नयाँ क्याटेगरी</td><td class="nw">नयाँ</td></tr>
+    </table>
+
+    <div class="steps">
+      <div class="step"><b>चरण १ · यो हप्ता</b><p>मेनु लेबल पुनर्संरचना (URL नछुने), "ताजा" र "बहस ▾" बनाउने, प्रदेशका ७ पेज जन्माउने।</p></div>
+      <div class="step"><b>चरण २ · २–४ हप्ता</b><p>नेभमा पालिका सर्च + पालिका प्रोफाइल पेज (७५३ मध्ये पाइलट ५० बाट सुरु)।</p></div>
+      <div class="step"><b>चरण ३ · १–२ महिना</b><p>डाटा हब (बजेट/खर्च तुलना), सुशासन वाच ट्र्याकर, "मेरो पालिका" अलर्ट।</p></div>
+    </div>
+
+    <p class="foot">प्रोटोटाइप — तस्बिरहरू डेमोका लागि मात्र (स्थान प्लेसहोल्डर) · शीर्षकहरू palikalive.com बाट · WordPress म्यापिङ माथिको तालिकामा</p>
+  </div>
+</section>
+
+<script>
+/* ================= डाटा ================= */
+const PALIKAS = [
+  ["काठमाडौं महानगरपालिका","बागमती"],["ललितपुर महानगरपालिका","बागमती"],["भरतपुर महानगरपालिका","बागमती"],
+  ["हेटौंडा उपमहानगरपालिका","बागमती"],["धुलिखेल नगरपालिका","बागमती"],["मेलम्ची नगरपालिका","बागमती"],["गल्छी गाउँपालिका","बागमती"],
+  ["विराटनगर महानगरपालिका","कोशी"],["धरान उपमहानगरपालिका","कोशी"],["इटहरी उपमहानगरपालिका","कोशी"],["खाँदबारी नगरपालिका","कोशी"],["सोलुदूधकुण्ड नगरपालिका","कोशी"],
+  ["वीरगन्ज महानगरपालिका","मधेश"],["जनकपुरधाम उपमहानगरपालिका","मधेश"],["लहान नगरपालिका","मधेश"],["सखुवाप्रसौनी गाउँपालिका","मधेश"],["गौर नगरपालिका","मधेश"],
+  ["पोखरा महानगरपालिका","गण्डकी"],["बागलुङ नगरपालिका","गण्डकी"],["वालिङ नगरपालिका","गण्डकी"],["गोरखा नगरपालिका","गण्डकी"],
+  ["बुटवल उपमहानगरपालिका","लुम्बिनी"],["नेपालगन्ज उपमहानगरपालिका","लुम्बिनी"],["तुलसीपुर उपमहानगरपालिका","लुम्बिनी"],["कपिलवस्तु नगरपालिका","लुम्बिनी"],
+  ["वीरेन्द्रनगर नगरपालिका","कर्णाली"],["सिमकोट गाउँपालिका","कर्णाली"],["नारायण नगरपालिका","कर्णाली"],
+  ["धनगढी उपमहानगरपालिका","सुदूरपश्चिम"],["भीमदत्त नगरपालिका","सुदूरपश्चिम"],["अमरगढी नगरपालिका","सुदूरपश्चिम"]
+];
+const PROVINCES = [
+  ["कोशी","विराटनगर"],["मधेश","जनकपुरधाम"],["बागमती","हेटौंडा"],["गण्डकी","पोखरा"],
+  ["लुम्बिनी","देउखुरी"],["कर्णाली","वीरेन्द्रनगर"],["सुदूरपश्चिम","गोदावरी"]
+];
+
+/* ड्रपडाउन कन्टेन्ट डेफिनिसन (सबै मोडलले सेयर गर्ने) */
+const DROPDOWNS = {
+  palika: {
+    mega: true,
+    groups: [
+      { title:"पालिका डाटा", items:[
+        {label:"पालिका खोज", href:"/research/"},
+        {label:"पालिका प्रोफाइल", href:"/palika/", isNew:true},
+        {label:"जनप्रतिनिधि डाइरेक्टरी", href:"/representatives/", isNew:true},
+        {label:"डाटा हब: बजेट/खर्च तुलना", href:"/data-hub/", isNew:true}
+      ]},
+      { title:"पालिका विषय", items:[
+        {label:"स्थानीय तह समाचार", href:"/local-level/"},
+        {label:"कर्मचारी प्रशासन", href:"/category/karmachari-prashasan/", isNew:true},
+        {label:"विकास / पूर्वाधार", href:"/category/vikas-purbadhar/", isNew:true},
+        {label:"शिक्षा · स्वास्थ्य", href:"/category/shiksha-swasthya/", isNew:true},
+        {label:"विपद् व्यवस्थापन", href:"/category/vipad/", isNew:true}
+      ]}
+    ]
+  },
+  pradesh: {
+    groups: [{ title:"७ प्रदेश + संघ", items: PROVINCES.map(p=>({label:p[0]+" प्रदेश", href:"/province/"+p[0].toLowerCase()+"/"}))
+      .concat([{label:"संघ / सिंहदरबार", href:"/province/federal/"},{label:"प्रदेश तुलना (डाटा)", href:"/data-hub/", isNew:true}]) }]
+  },
+  bahas: {
+    groups: [{ title:"बहस र विचार", items:[
+      {label:"पालिका बार्ता", href:"/interview/"},
+      {label:"विचार", href:"/opinion/"},
+      {label:"फिचर", href:"/photo/"},
+      {label:"डाटा स्टोरी", href:"/data-stories/", isNew:true}
+    ]}]
+  },
+  nagarik: {
+    groups: [{ title:"नागरिकका लागि", items:[
+      {label:"पालिका खबर", href:"/main_news/"},
+      {label:"सुशासन वाच", href:"/good-governance/"},
+      {label:"विपद् व्यवस्थापन", href:"/category/vipad/", isNew:true},
+      {label:"शिक्षा · स्वास्थ्य", href:"/category/shiksha-swasthya/", isNew:true},
+      {label:"सूचना/टेन्डर/रोजगारी", href:"/notices/", isNew:true}
+    ]}]
+  },
+  janpratinidhi: {
+    groups: [{ title:"जनप्रतिनिधिका लागि", items:[
+      {label:"स्थानीय तह", href:"/local-level/"},
+      {label:"पालिका बार्ता", href:"/interview/"},
+      {label:"जनप्रतिनिधि डाइरेक्टरी", href:"/representatives/", isNew:true},
+      {label:"अभ्यास/नीति नोट", href:"/policy-notes/", isNew:true}
+    ]}]
+  },
+  karmachari: {
+    groups: [{ title:"कर्मचारीका लागि", items:[
+      {label:"सरुवा / बढुवा / खटनपटन", href:"/category/karmachari-prashasan/", isNew:true},
+      {label:"संघ / सिंहदरबार", href:"/province/federal/"},
+      {label:"तलब–भत्ता / सेवा शर्त", href:"/category/sewa-shart/", isNew:true}
+    ]}]
+  },
+  data: {
+    groups: [{ title:"बजेट र डाटा", items:[
+      {label:"अर्थ पालिका", href:"/economy/"},
+      {label:"डाटा हब", href:"/data-hub/", isNew:true},
+      {label:"बजेट विश्लेषण", href:"/category/budget/", isNew:true},
+      {label:"टेन्डर / खरिद", href:"/notices/", isNew:true}
+    ]}]
+  }
+};
+
+/* तीन मोडल */
+const MODELS = {
+  hybrid: {
+    label:"हाइब्रिड", items:[
+      {label:"ताजा", href:"/main_news/"},
+      {label:"पालिका", dropdown:"palika"},
+      {label:"प्रदेश", dropdown:"pradesh"},
+      {label:"सुशासन वाच", href:"/good-governance/"},
+      {label:"अर्थ पालिका", href:"/economy/"},
+      {label:"राजनीति", href:"/politics/"},
+      {label:"समाज", href:"/society/"},
+      {label:"बहस", dropdown:"bahas"},
+      {label:"भिडियो", href:"/video/", isNew:true}
+    ]
+  },
+  clean: {
+    label:"स्वच्छ न्युज", items:[
+      {label:"ताजा अपडेट", href:"/main_news/"},
+      {label:"स्थानीय तह", href:"/local-level/"},
+      {label:"प्रदेश", dropdown:"pradesh"},
+      {label:"राजनीति", href:"/politics/"},
+      {label:"सुशासन", href:"/good-governance/"},
+      {label:"अर्थ पालिका", href:"/economy/"},
+      {label:"समाज", href:"/society/"},
+      {label:"बहस", dropdown:"bahas"},
+      {label:"फिचर", href:"/photo/"}
+    ]
+  },
+  audience: {
+    label:"दर्शक-आधारित", items:[
+      {label:"नागरिक", dropdown:"nagarik"},
+      {label:"जनप्रतिनिधि", dropdown:"janpratinidhi"},
+      {label:"कर्मचारी", dropdown:"karmachari"},
+      {label:"सुशासन वाच", href:"/good-governance/"},
+      {label:"बजेट/डाटा", dropdown:"data"},
+      {label:"राजनीति", href:"/politics/"},
+      {label:"समाचार", href:"/main_news/"}
+    ]
+  }
+};
+
+/* ================= रेन्डर: डेस्कटप नेभ ================= */
+const navInner = document.getElementById("navInner");
+let currentModel = "hybrid";
+
+function ddHtml(key){
+  const def = DROPDOWNS[key];
+  return `<div class="dropdown">` +
+    def.groups.map(g=>`<div style="margin-bottom:${g.title?12:0}px"><div class="dd-title">${g.title||""}</div>`+
+      g.items.map(i=>`<a class="dd-link" href="${i.href}">${i.label}${i.isNew?' <span class="b-new">नयाँ</span>':""}</a>`).join("")+
+    `</div>`).join("") +
+  `</div>`;
+}
+
+function megaHtml(){
+  return `
+  <div class="mega">
+    <div class="mega-grid">
+      <div class="mega-col">
+        <div class="mega-search-head"><span class="t">पालिका खोज</span><span class="s">७५३ पालिका · नाम टाइप गर्नुहोस्</span></div>
+        <div class="search-box">
+          <input type="text" id="megaPalikaInput" placeholder="जस्तै: काठमाडौं, सखुवाप्रसौनी…" autocomplete="off">
+          <button class="go">→</button>
+          <div class="suggest" id="megaSuggest"></div>
+        </div>
+        <div class="quick-chips">
+          <span>चर्चित:</span>
+          <button data-palika="काठमाडौं महानगरपालिका">काठमाडौं</button>
+          <button data-palika="पोखरा महानगरपालिका">पोखरा</button>
+          <button data-palika="जनकपुरधाम उपमहानगरपालिका">जनकपुरधाम</button>
+          <button data-palika="सखुवाप्रसौनी गाउँपालिका">सखुवाप्रसौनी</button>
+        </div>
+        <div class="mega-foot-note">पालिका प्रोफाइलमा: <b>बजेट · खर्च · जनप्रतिनिधि · त्यस पालिकाका सबै समाचार</b> एकै ठाउँमा</div>
+      </div>
+      ${DROPDOWNS.palika.groups.map(g=>`
+        <div class="mega-col">
+          <div class="dd-title">${g.title}</div>
+          ${g.items.map(i=>`<a class="dd-link" href="${i.href}">${i.label}${i.isNew?' <span class="b-new">नयाँ</span>':""}</a>`).join("")}
+        </div>`).join("")}
+      <div class="mega-col">
+        <div class="dd-title">चर्चामा रहेको पालिका</div>
+        <div class="feat-card">
+          <img src="assets/mayor.jpg" alt="सखुवाप्रसौनी">
+          <div class="fc-body">
+            <div class="fc-tag">सुशासन वाच</div>
+            <div class="fc-title">सखुवाप्रसौनीका अध्यक्ष यादव पक्राउ</div>
+            <a class="fc-link" href="#">सखुवाप्रसौनी प्रोफाइल →</a>
+          </div>
+        </div>
+        <div class="feat-stats">
+          <div><b>७५३</b><span>पालिका</span></div>
+          <div><b>२९३</b><span>नगरपालिका</span></div>
+          <div><b>४६०</b><span>गाउँपालिका</span></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderNav(modelId){
+  currentModel = modelId;
+  const items = MODELS[modelId].items;
+  navInner.innerHTML = items.map(it=>{
+    const dd = it.dropdown;
+    const inner = dd
+      ? (DROPDOWNS[dd].mega ? megaHtml() : ddHtml(dd))
+      : "";
+    return `<div class="nav-item${dd?" has-dd":""}">
+      <a class="nav-link" href="${it.href||"#"}" ${dd?'data-dd="1"':''}>
+        ${it.label}
+        ${dd?'<span class="caret">▼</span>':''}
+        ${it.isNew?'<span class="badge-new">नयाँ</span>':''}
+      </a>${inner}
+    </div>`;
+  }).join("") + `
+    <div class="nav-cta desktop-only"><a href="/good-governance/"><span class="dot"></span>सुशासन वाच: सूचना दिनुहोस्</a></div>`;
+  bindNav();
+  bindSearch(document.getElementById("megaPalikaInput"), document.getElementById("megaSuggest"));
+}
+
+function bindNav(){
+  const items = navInner.querySelectorAll(".nav-item");
+  items.forEach(el=>{
+    const link = el.querySelector(".nav-link[data-dd]");
+    if(!link) return;
+    link.addEventListener("click", e=>{ e.preventDefault(); toggleItem(el); });
+    el.addEventListener("mouseenter", ()=>{ closeAll(); el.classList.add("open"); });
+    el.addEventListener("mouseleave", ()=>el.classList.remove("open"));
+  });
+  function toggleItem(el){
+    const was = el.classList.contains("open");
+    closeAll();
+    if(!was) el.classList.add("open");
+  }
+}
+function closeAll(){
+  navInner.querySelectorAll(".nav-item.open").forEach(el=>el.classList.remove("open"));
+}
+document.addEventListener("click", e=>{
+  if(!e.target.closest(".nav")) closeAll();
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ closeAll(); } });
+
+/* ================= रेन्डर: मोबाइल ड्रअर ================= */
+const acc = document.getElementById("acc");
+function renderAccordion(){
+  const items = MODELS[currentModel].items;
+  acc.innerHTML = items.map(it=>{
+    const dd = it.dropdown ? DROPDOWNS[it.dropdown] : null;
+    if(dd){
+      const sub = dd.groups.map(g=>`
+        <div class="g-title">${g.title}</div>
+        ${g.items.map(i=>`<a href="${i.href}">${i.label}${i.isNew?' <span class="b-new" style="font-size:9px;font-weight:800;color:#fff;background:var(--green);padding:1px 6px;border-radius:999px">नयाँ</span>':""}</a>`).join("")}
+      `).join("");
+      return `<div class="acc-item">
+        <button class="acc-link">${it.label} <span class="c">▼</span></button>
+        <div class="acc-sub">${sub}</div>
+      </div>`;
+    }
+    return `<div class="acc-item"><a class="acc-link" style="text-decoration:none" href="${it.href}">${it.label}</a></div>`;
+  }).join("");
+  acc.querySelectorAll(".acc-link").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const item = btn.closest(".acc-item");
+      if(!btn.closest("a") && item.querySelector(".acc-sub")){
+        item.classList.toggle("open");
+        acc.querySelectorAll(".acc-item.open").forEach(o=>{ if(o!==item) o.classList.remove("open"); });
+      }
+    });
+  });
+}
+
+/* ================= पालिका सर्च (autocomplete) ================= */
+function bindSearch(input, suggest){
+  if(!input || !suggest) return;
+  let active = -1;
+  function show(q){
+    const rows = suggest.querySelectorAll(".row");
+    rows.forEach((r,i)=>r.classList.toggle("hover", i===active));
+  }
+  input.addEventListener("input", ()=>{
+    const q = input.value.trim();
+    if(!q){ suggest.classList.remove("on"); return; }
+    const found = PALIKAS.filter(p=>p[0].includes(q)).slice(0,7);
+    active = -1;
+    suggest.innerHTML = found.length
+      ? found.map((p,i)=>`<div class="row" data-i="${i}"><span>${p[0]}</span><span class="prov">${p[1]}</span></div>`).join("")
+      : `<div class="empty">'${q}' नामको पालिका भेटिएन · डाटाबेसमा ७५३ वटै छन् (डेमोमा नमुना मात्र)</div>`;
+    suggest.classList.add("on");
+    suggest.querySelectorAll(".row").forEach(r=>{
+      r.addEventListener("click", ()=>{
+        input.value = r.querySelector("span").textContent;
+        suggest.classList.remove("on");
+      });
+    });
+  });
+  input.addEventListener("keydown", e=>{
+    const rows = suggest.querySelectorAll(".row");
+    if(!rows.length) return;
+    if(e.key==="ArrowDown"){ e.preventDefault(); active = Math.min(active+1, rows.length-1); show(); }
+    else if(e.key==="ArrowUp"){ e.preventDefault(); active = Math.max(active-1, -1); show(); }
+    else if(e.key==="Enter" && active>=0){ input.value = rows[active].querySelector("span").textContent; suggest.classList.remove("on"); }
+  });
+  document.addEventListener("click", e=>{
+    if(!e.target.closest(".search-box")) suggest.classList.remove("on");
+  });
+}
+document.addEventListener("click", e=>{
+  const chip = e.target.closest(".quick-chips button[data-palika]");
+  if(chip){
+    const inp = document.getElementById("megaPalikaInput");
+    if(inp){ inp.value = chip.dataset.palika; }
+  }
+});
+
+/* ================= मोडल / भ्यू स्विच ================= */
+const stage = document.getElementById("stage");
+document.getElementById("modelSeg").addEventListener("click", e=>{
+  const btn = e.target.closest("button[data-model]");
+  if(!btn) return;
+  document.querySelectorAll("#modelSeg button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderNav(btn.dataset.model);
+  renderAccordion();
+});
+document.getElementById("viewSeg").addEventListener("click", e=>{
+  const btn = e.target.closest("button[data-view]");
+  if(!btn) return;
+  document.querySelectorAll("#viewSeg button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  stage.classList.toggle("mobile", btn.dataset.view==="mobile");
+});
+
+/* ================= ड्रअर ================= */
+document.getElementById("burger").addEventListener("click", ()=>{
+  stage.classList.add("drawer-open");
+  renderAccordion();
+  bindSearch(document.getElementById("drawerPalikaInput"), document.getElementById("drawerSuggest"));
+});
+document.getElementById("drawerClose").addEventListener("click", ()=>stage.classList.remove("drawer-open"));
+document.getElementById("drawer").addEventListener("click", e=>{
+  if(e.target.id==="drawer") stage.classList.remove("drawer-open");
+});
+
+/* ================= इनिट ================= */
+renderNav("hybrid");
+renderAccordion();
+</script>
+</body>
+</html>
