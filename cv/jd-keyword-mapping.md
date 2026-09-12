@@ -28,7 +28,7 @@ genuine gap you should address honestly (⚠️).
 
 | # | Criterion | Where it appears in your CV | Status |
 |---|---|---|---|
-| 2.1 | **Knowledge of Workday HCM** — good understanding of the platform; preferably hands-on experience of system enhancements, data management, troubleshooting | Competencies → *Digital tools* (Workday HCM line) + honest paragraph 5 of the cover letter | ⚠️ **main gap.** Mitigate: end-user HRIS/ERP experience, rapid platform-learning evidence, self-study (Workday Community/LinkedIn Learning "Workday Essential Training"), and be explicit rather than silent |
+| 2.1 | **Knowledge of Workday HCM** — good understanding of the platform; preferably hands-on experience of system enhancements, data management, troubleshooting | Competencies → *Digital tools* line (states "no hands-on experience to date" + self-study) + honest paragraph 4 of the cover letter | ⚠️ **main gap, declared honestly.** Mitigations in place: rostering/POS/stock systems exposure in the consolidated entry, rapid platform-learning + documentation evidence, Workday self-study line (keep only if started) |
 | 2.2 | **Communication skills** — clear, concise, impactful messages tailored to different audiences; stakeholder engagement and buy-in | Summary; Competencies → *Analysis & engagement*; every editorial bullet; cover letter paragraphs 3 and 4 | ✅ strongest selling point — lead with it |
 | 2.3 | **Project management** — multiple concurrent projects, organisation, time management, prioritisation, deadlines | Summary; Competencies → *Coordination & delivery*; Experience: "prioritising [N] concurrent projects against fixed deadlines" | ✅ |
 | 2.4 | **Analytical abilities** — assess system requirements, identify improvement areas, data-driven recommendations | Experience: workflow mapping, analytics reporting, feedback analysis; verification/QC bullet | ✅ |
@@ -39,7 +39,7 @@ genuine gap you should address honestly (⚠️).
 | # | Criterion | Where it appears in your CV | Status |
 |---|---|---|---|
 | 3.1 | Stakeholder engagement; experience across project teams | Experience: institutional stakeholders bullet; coordination point bullet | ✅ |
-| 3.2 | Supporting digital transformation or HR technology projects in a complex organisation | Projects section (platform change and user adoption) | 🟡 add any HR-related system work (rostering, payroll portal, HR self-service, staff intranet, training platform) |
+| 3.2 | Supporting digital transformation or HR technology projects in a complex organisation | Projects section (platform change and user adoption) + consolidated entry (rostering/POS/stock systems = HR & finance process exposure; new-starter onboarding) | ✅ name the real systems |
 | 3.3 | Undergraduate degree (or equivalent) in HR, Business Management, Information Systems, Computer Science, Organisational Development **or a related discipline** | Education section, with the "related discipline" note | ✅ list the degree title exactly as on your certificate |
 
 ## 4. Context that should shape your wording

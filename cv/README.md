@@ -31,18 +31,18 @@ Every `[square bracket]` is a fact I could not know. See `placeholders.md` for t
 
 ## Step 2 — what was deliberately left out
 
-Per your instruction, warehouse, restaurant, cashier and other unrelated employment periods are **not** listed.
-Instead, the CV carries one discreet closing line under *Additional Information*:
+Per your instruction, warehouse, restaurant, cashier and other unrelated employment periods are **not** listed as
+separate jobs. Because you confirmed they contain HR/finance-adjacent systems work, the CV now carries **one
+consolidated entry** at the end of *Professional Experience*:
 
-> Earlier roles in retail, hospitality and warehouse operations are omitted here for relevance to this post; a complete
-> employment history is available on request.
+> **Earlier operational roles (consolidated)** — two bullets: daily use of rostering / point-of-sale / stock systems
+> (the HR and finance processes an ERP transformation digitises), and onboarding/training new starters on them.
 
-That line exists so a screener does not read the timeline as an unexplained gap. If your media roles are continuous and
-cover the whole period, **delete the line**. If they leave gaps of more than ~6 months, **keep it**.
-
-If you have any HR-adjacent work hidden in those periods — rostering, cash-handling systems, stock/inventory software,
-POS or workforce-management platforms, customer complaint handling, training new starters — it is worth *one* bullet,
-because the role begins inside HR and moves into Finance and Procurement. Tell me and I will place it.
+That single entry does three jobs: it surfaces HR- and finance-process exposure (the role starts in HR, then moves to
+Finance and Procurement), it shows training-and-adoption experience outside media, and it closes timeline gaps so a
+screener sees no unexplained hole. The closing line under *Additional Information* then offers the complete itemised
+history on request. If your media roles are in fact continuous with no gaps, you may delete both the consolidated
+entry and that closing line.
 
 ## Step 3 — the Workday HCM gap (read this)
 
