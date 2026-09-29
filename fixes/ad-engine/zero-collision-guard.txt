@@ -1,0 +1,49 @@
+================================================================================
+ZERO-COLLISION GUARD - छुटेको भाग (तपाईंको कपीमा यो छैन)
+================================================================================
+
+कहाँ राख्ने:  fixes/wp-content/mu-plugins/palikalive-ads.php
+               यो भाग `if ( ! defined( 'ABSPATH' ) ) { exit; }` भन्दा ठीक तल,
+               `/* ===... 0. SWITCHES, CONSTANTS, VERSION ...=== */` भन्दा माथि।
+
+किन चाहिन्छ:  पुरानो v46 फाइल अझै mu-plugins फोल्डरमा छ भने दुवै फाइलले
+               pklv_master_get_ad() बनाउन खोज्छन् → "Cannot redeclare" fatal
+               error, वा दोहोरो ad छापिन्छ। यो guard ले त्यस्तो अवस्थामा v47
+               चुपचाप पछि हट्छ र admin मा सन्देश देखाउँछ (साइट भाँचिँदैन)।
+
+जाँच्ने तरिका: File Manager > palikalive-ads.php > Edit > Ctrl+F गरेर
+               "ZERO-COLLISION" खोज्नुहोस्। भेटिए = नयाँ (पूरा) फाइल हो।
+               नभेटिए = तलको कोड टाँस्नुहोस्।
+
+--------------------------------------------------------------------------------
+योभन्दा तलको भाग कपी गर्नुहोस्:
+--------------------------------------------------------------------------------
+
+/* ==========================================================================
+ * 0. ZERO-COLLISION GUARD
+ *    If another copy of the engine is already loaded (the old v46 file was not
+ *    renamed), this file steps aside instead of triggering a "Cannot
+ *    redeclare" fatal error or printing every ad twice.
+ * ========================================================================== */
+
+/**
+ * Tell the administrator that an older copy is still active.
+ *
+ * @return void
+ */
+function pklv_ads_duplicate_notice() {
+	echo '<div class="notice notice-error"><p><strong>PalikaLive Ad Engine:</strong> '
+		. 'an older copy of the engine is still active, so v47 is inactive. '
+		. 'Rename the old file inside wp-content/mu-plugins/ (for example add .bak to the file name) and reload this page.</p></div>';
+}
+
+if ( function_exists( 'pklv_master_get_ad' ) ) {
+	add_action( 'admin_notices', 'pklv_ads_duplicate_notice' );
+	return; // The older engine keeps working; v47 waits.
+}
+
+--------------------------------------------------------------------------------
+अनि सेक्सन नम्बर: तपाईंको कपीमा ०–८ छन् (अन्तिम "8. HEADER SLOT")।
+पूरा फाइलमा ०–९ छन् (अन्तिम "9. HEADER SLOT") — guard थपिँदा एक नम्बर
+सर्ने भएकोले। नम्बर नमिल्दा केही बिग्रँदैन, बस् पहिचानको लागि हो।
+================================================================================
