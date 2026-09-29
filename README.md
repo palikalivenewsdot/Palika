@@ -16,7 +16,8 @@
 | `fixes/theme-snippets.md` | — | थिम फाइलका १४ स्निपेट (कोड English, व्याख्या नेपाली) |
 | `fixes/ad-engine/review.md` | — | Ad Engine समीक्षा — क्यास बन्द गर्ने ब्लक, खण्ड २ का ७ बुँदा र समाधान |
 | `fixes/wp-content/mu-plugins/palikalive-ads.php` | `wp-content/mu-plugins/` (उही नाम) | **Ad Engine v48 — एउटै फाइल** — क्यास-मैत्री, kill switch, हेडरमा rotation, लेखभित्र दोस्रो अनुच्छेदपछि तीनवटा ad को स्थिर पंक्ति (ADVERTISEMENT लेबल) |
-| `fixes/wp-content/themes/palikalive/single.php` | `wp-content/themes/palikalive/` (पुरानो `single.php` को नाम फेरेर) | **लेख पेज टेम्प्लेट v5.0.0 — एउटै फाइल, थप plugin चाहिँदैन** — टाइटल ब्लक तल स्क्रोल गर्नासाथ लुक्ने (माथि स्क्रोल गर्दा मात्र compact bar), सब-हेडलाइनको रातो लाइन हटाई सफा lead, शेयर बारमा जीवित शेयर संख्या + ५ बटन (FB, X, Messenger, WhatsApp, Share); गणना यही फाइलभित्रको POST endpoint ले गर्छ |
+| `fixes/wp-content/mu-plugins/palikalive-single.php` | `wp-content/mu-plugins/` | **लेख पेज सुधार v3.0.0 — सिफारिस गरिएको तरिका (थिम छुँदैन)** — टाइटल ब्लक तल स्क्रोल गर्नासाथ लुक्ने, सब-हेडलाइनको रातो लाइन हटाई सफा lead, शेयर बारमा जीवित शेयर संख्या + ५ बटन (FB, X, Messenger, WhatsApp, Share); गणना admin-ajax बाट |
+| `fixes/wp-content/themes/palikalive/single.php` | ⚠️ प्रयोग **नगर्नुहोस्** (वैकल्पिक) | पूरा थिम टेम्प्लेट v5.0.0 — पेस्ट गर्दा कटिए/बिग्रिए साइटमा fatal error आउँछ; माथिको mu-plugin ले नै तीनैं काम गर्छ |
 | `03-start-here-checklist.md` | — | **मुख्य चेकलिस्ट** — कुन क्रममा के गर्ने, समय र जाँच सहित |
 | `01-fix-guide.md` | — | विस्तृत गाइड — लाइभ जाँचको प्रमाण, cPanel का हरेक क्लिक, rollback, चेकलिस्ट |
 
