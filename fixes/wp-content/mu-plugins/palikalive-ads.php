@@ -74,6 +74,8 @@
  *   and add define( 'PKLV_ADS_HEADER_JS', false ); to wp-config.php
  * - In-article slot name: ad_position taxonomy term "in-between"
  * - Header slot name:     ad_position taxonomy term "header-banner"
+ * - Which file is live:   View Source and search for "PalikaLive Ad Engine v"
+ *                         (a one-line HTML comment is printed in <head>)
  * ==========================================================================
  */
 
@@ -688,6 +690,23 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 	<?php
+}
+
+/* ==========================================================================
+ * 10. SELF-CHECK MARKER
+ *     Hands off, one line. View Source of any page and search for
+ *     "PalikaLive Ad Engine v" to see which copy is actually running.
+ *     Useful after several uploads over time.
+ * ========================================================================== */
+add_action( 'wp_head', 'pklv_ads_version_marker', 0 );
+
+/**
+ * Print a one-line HTML comment with the engine version.
+ *
+ * @return void
+ */
+function pklv_ads_version_marker() {
+	echo '<!-- PalikaLive Ad Engine v' . esc_html( PKLV_ADS_VERSION ) . ' (single-file build) -->' . "\n";
 }
 
 /* ==========================================================================
