@@ -255,13 +255,40 @@ define( 'PKLV_ADS_HEADER_JS', false );
 
 ---
 
-## 📦 v47 फाइलहरूको स्थिति
+## 📦 v47 — तयार (एउटै फाइल, उही नाम)
 
-| फाइल | सेक्सन | अवस्था |
-|---|---|---|
-| `fixes/ad-engine/v47-sections-1-5.php` | १–५ (स्थिर, CSS, इन्जिन, hooks, shortcodes) | तयार |
-| `fixes/ad-engine/v47-sections-6-7.php` | ६–७ (लेखभित्रको ad, हेडर स्लट) | तयार (पहिलो फाइलमा टाँस्ने) |
+**फाइल:** `fixes/wp-content/mu-plugins/palikalive-ads.php` → सर्भरमा `wp-content/mu-plugins/palikalive-ads.php`
 
-**बाँकी चाहिने:** Skip/interstitial ad · Category page slots · Admin settings (भए)।
-ती आएपछि म **एउटै पूरा v47 फाइल** बनाएर दिन्छु — तपाईं पुरानोलाई `palikalive-ad-engine.php.bak-2026-09-29` बनाई नयाँ राख्ने मात्र।
-**अहिले नराख्नुहोस्** — आधा फाइल राख्दा Skip ad/Category slots हराउँछन्; आज गर्नुपर्ने काम भने `review.md` को सुरुको "आजै गर्ने तीन काम" (पुरानै फाइलमै, सुरक्षित)।
+यसमै सेक्सन १–७ सबै छन् (स्थिर CSS, इन्जिन, rotation, hooks, shortcodes, लेखभित्रको ad, हेडर) + थप:
+
+| थपिएको | किन |
+|---|---|
+| `PKLV_ADS_ENABLED` kill switch | आपत्कालमा `wp-config.php` बाट एक लाइनले सबै ad बन्द |
+| Cache policy | क्यास खुला; `?pklv_ads_debug=1` (admin) वा `PKLV_ADS_NOCACHE` मा मात्र बाइपास |
+| Rotation (`count` प्यारामिटर) | क्यास खुलै रहँदा पनि हरेक लोडमा फरक ad |
+| `rel="sponsored"` | Google को सशुल्क-लिङ्क नीति |
+| in-article fix | v46 को `explode/implode` बग हटाइयो (HTML मान्य) |
+| Zero-collision guard | पुरानो फाइल छुटे दोहोरो ad वा fatal नहोस् — admin notice मात्र |
+| `pklv_header_ad_html()` | हेडर सर्भर-साइड छापेर layout shift हटाउने विकल्प |
+| `function_exists` guards | कुनै अर्को फाइलले उही function राखे पनि crash हुँदैन |
+
+### अपलोड गर्ने तरिका (क्रम महत्त्वपूर्ण)
+1. cPanel → File Manager → `public_html/wp-content/mu-plugins/`
+2. **पुरानो फाइल नाम फेर्नुहोस्:** `palikalive-ads.php` → `palikalive-ads.php.bak-2026-09-29` (नहटाई फेर्ने — समस्या आए फिर्ता गर्न मिल्छ)
+   *(नाम नफेरी नयाँ राख्दा पुरानै फाइल माथि लेखिन्छ — त्यो पनि ठीक, तर ब्याकअप नहुने)*
+3. नयाँ `palikalive-ads.php` अपलोड गर्नुहोस् (अपलोड → यसै नाम)
+4. होमपेज + एउटा लेख खोल्नुहोस्
+
+### जाँच (४ बुँदा)
+- [ ] हेडरमा ad देखियो (लोगोको दायाँ वा तोकिएको ठाउँमा)
+- [ ] एउटा लेख खोल्दा दोस्रो अनुच्छेदपछि ad देखियो, लेआउट बिग्रिएको छैन
+- [ ] View Source मा `<div class="pl-slot-header-banner"` र `rel="sponsored` देखियो
+- [ ] DevTools → Network → डकुमेन्टमा `x-litespeed-cache: hit` (पहिलो लोड `miss`, दोस्रोमा `hit`)
+
+### अझै अडिटमा बाँकी (यो फाइलमा छैन — भएको कोड मात्र राखिएको छ)
+- Skip/interstitial ad — भएको फाइल पठाए सोही तरिकाले मिलाउँछु; नभए `palikalive-fixes.php` को `interstitial_once` प्रयोग गर्न सकिन्छ
+- Category page slots र Admin settings — भए पठाउनुहोस्
+
+### दुई सम्झनुहोस्
+1. **क्यास बन्द गर्नुअब कहिल्यै आवश्यक छैन** — rotation का लागि स्लटमा २–३ creative राख्नुहोस् (`[palika_ad position="header" count="3"]` वा `pklv_master_get_ad('in-between','center',3)`)।
+2. **LiteSpeed → Cache → TTL Public = 3600** राख्नुहोस् — ad प्रति घण्टा नयाँ सेट पनि पाइन्छ, गति पनि।

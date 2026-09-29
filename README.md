@@ -15,7 +15,7 @@
 | `fixes/htaccess/palika-snippets.txt` | `public_html/.htaccess` | www → non-www, HSTS, CSP (Report-Only) स्निपेट |
 | `fixes/theme-snippets.md` | — | थिम फाइलका १४ स्निपेट (कोड English, व्याख्या नेपाली) |
 | `fixes/ad-engine/review.md` | — | Ad Engine समीक्षा — क्यास बन्द गर्ने ब्लक, खण्ड २ का ७ बुँदा र समाधान |
-| `fixes/ad-engine/v47-sections-1-5.php` | ad engine फाइलको ठाउँमा | **Ad Engine v47 (सेक्सन १–५)** — क्यास-मैत्री, kill switch सहित |
+| `fixes/wp-content/mu-plugins/palikalive-ads.php` | `wp-content/mu-plugins/` (उही नाम) | **Ad Engine v47 — एउटै फाइल** — क्यास-मैत्री, kill switch, rotation, sponsored rel |
 | `03-start-here-checklist.md` | — | **मुख्य चेकलिस्ट** — कुन क्रममा के गर्ने, समय र जाँच सहित |
 | `01-fix-guide.md` | — | विस्तृत गाइड — लाइभ जाँचको प्रमाण, cPanel का हरेक क्लिक, rollback, चेकलिस्ट |
 
