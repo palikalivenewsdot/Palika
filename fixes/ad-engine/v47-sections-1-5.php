@@ -241,9 +241,8 @@ function pklv_master_get_ad( $slug = '', $align = 'center', $count = 1, $eager =
 		return '';
 	}
 
-	$rotate = ( $query->post_count > 1 );
-	$output = '';
-	$index  = 0;
+	$rotate    = ( $query->post_count > 1 );
+	$creatives = array();
 
 	while ( $query->have_posts() ) {
 
@@ -284,34 +283,67 @@ function pklv_master_get_ad( $slug = '', $align = 'center', $count = 1, $eager =
 		// Paid placements must be marked for search engines.
 		$rel = ' rel="sponsored noopener noreferrer"';
 
-		// Rotating slots: only the first creative is visible before JS runs.
-		$hidden = ( $rotate && $index > 0 ) ? ' style="display:none !important"' : ''; // !important because the slot CSS uses it
-
 		$loading = $eager
 			? ' loading="eager" fetchpriority="high"'
 			: ' loading="lazy" decoding="async"';
 
-		$output .= '<div class="pl-banner-box pl-slot-' . esc_attr( $slug ) . '" style="text-align:' . esc_attr( $align ) . ';"'
-			. ( $rotate ? ' data-pklv-rotate' : '' ) . '>';
+		$image_html = '<img src="' . esc_url( $image ) . '" alt="' . esc_attr( get_the_title() ) . '"' . $loading . '>';
 
-		if ( $link ) {
-			$output .= '<a href="' . esc_url( $link ) . '"' . $target . $rel
-				. ( $rotate ? ' data-pklv-ad' . $hidden : '' ) . '>';
-		}
-
-		$output .= '<img src="' . esc_url( $image ) . '" alt="' . esc_attr( get_the_title() ) . '"'
-			. $loading . '>';
-
-		if ( $link ) {
-			$output .= '</a>';
-		}
-
-		$output .= '</div>';
-
-		$index++;
+		// Store the parts; the exact markup is assembled once the total count is known.
+		$creatives[] = array(
+			'link'   => $link,
+			'target' => $target,
+			'rel'    => $rel,
+			'img'    => $image_html,
+		);
 	}
 
 	wp_reset_postdata();
+
+	if ( ! $creatives ) {
+		return '';
+	}
+
+	/**
+	 * Build one creative.
+	 *
+	 * @param array $creative Creative parts.
+	 * @param bool  $hide     Hide it until the rotation script runs.
+	 * @return string
+	 */
+	$render_creative = function ( $creative, $hide ) use ( $rotate ) {
+
+		// !important because the slot CSS declares display on the anchor.
+		$ad_attr = $hide ? ' data-pklv-ad style="display:none !important"' : ( $rotate ? ' data-pklv-ad' : '' );
+
+		if ( $creative['link'] ) {
+			return '<a href="' . esc_url( $creative['link'] ) . '"' . $creative['target'] . $creative['rel'] . $ad_attr . '>'
+				. $creative['img'] . '</a>';
+		}
+
+		return $creative['img'];
+	};
+
+	$output = '';
+
+	if ( $rotate ) {
+
+		// ONE box holds every creative and the browser picks one per page load.
+		// This is what keeps the page cacheable AND the ad fresh.
+		$output .= '<div class="pl-banner-box pl-slot-' . esc_attr( $slug ) . '" style="text-align:' . esc_attr( $align ) . ';" data-pklv-rotate>';
+
+		foreach ( $creatives as $index => $creative ) {
+			$output .= $render_creative( $creative, $index > 0 );
+		}
+
+		$output .= '</div>';
+	} else {
+
+		foreach ( $creatives as $creative ) {
+			$output .= '<div class="pl-banner-box pl-slot-' . esc_attr( $slug ) . '" style="text-align:' . esc_attr( $align ) . ';">'
+				. $render_creative( $creative, false ) . '</div>';
+		}
+	}
 
 	return $output;
 }
@@ -327,7 +359,7 @@ function pklv_master_get_ad( $slug = '', $align = 'center', $count = 1, $eager =
 function pklv_ads_rotation_script() {
 	?>
 <script id="pklv-ad-rotate">
-(function () {
+window.pklvRotateAds = function () {
 	var boxes = document.querySelectorAll('[data-pklv-rotate]');
 	Array.prototype.forEach.call(boxes, function (box) {
 		var ads = box.querySelectorAll('[data-pklv-ad]');
@@ -341,7 +373,14 @@ function pklv_ads_rotation_script() {
 			}
 		});
 	});
-}());
+};
+// Run now for server-rendered slots, and again after DOM ready for slots that
+// the header script injects later.
+if ('loading' === document.readyState) {
+	document.addEventListener('DOMContentLoaded', window.pklvRotateAds);
+} else {
+	window.pklvRotateAds();
+}
 </script>
 	<?php
 }
