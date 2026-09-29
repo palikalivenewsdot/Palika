@@ -963,11 +963,13 @@ window.fbAsyncInit = function () {
     padding: 3px 8px;
     margin-bottom: 6px;
 }
-#pl-post-header.pl-head-compact.pl-head-hidden {
+/* Hidden state. Deliberately NOT scoped to .pl-head-compact: if anything else
+   in the stack tries to pin the title block, this rule still hides it. */
+#pl-post-header.pl-head-hidden {
     transform: translateY(-120%) !important;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 body.admin-bar #pl-post-header.pl-head-compact {
     top: 32px;
@@ -978,6 +980,12 @@ body.admin-bar #pl-post-header.pl-head-compact {
     }
     #pl-post-header.pl-head-compact .single-title {
         font-size: 17px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    #pl-post-header,
+    #pl-post-header.pl-head-compact {
+        transition: none !important;
     }
 }
 
