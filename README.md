@@ -16,6 +16,7 @@
 | `fixes/theme-snippets.md` | — | थिम फाइलका १४ स्निपेट (कोड English, व्याख्या नेपाली) |
 | `fixes/ad-engine/review.md` | — | Ad Engine समीक्षा — क्यास बन्द गर्ने ब्लक, खण्ड २ का ७ बुँदा र समाधान |
 | `fixes/wp-content/mu-plugins/palikalive-ads.php` | `wp-content/mu-plugins/` (उही नाम) | **Ad Engine v48 — एउटै फाइल** — क्यास-मैत्री, kill switch, हेडरमा rotation, लेखभित्र दोस्रो अनुच्छेदपछि तीनवटा ad को स्थिर पंक्ति (ADVERTISEMENT लेबल) |
+| `fixes/wp-content/mu-plugins/palikalive-single-post.php` | `wp-content/mu-plugins/` | **लेख पेज सुधार v1.0** — टाइटल+सब-हेडलाइन स्क्रोलमा auto-hide, सब-हेडलाइनको रातो लाइन हटाई सफा शैली, शेयर बारमा जीवित शेयर संख्या + ५ बटन (FB, X, Messenger, WhatsApp, Share) |
 | `03-start-here-checklist.md` | — | **मुख्य चेकलिस्ट** — कुन क्रममा के गर्ने, समय र जाँच सहित |
 | `01-fix-guide.md` | — | विस्तृत गाइड — लाइभ जाँचको प्रमाण, cPanel का हरेक क्लिक, rollback, चेकलिस्ट |
 
