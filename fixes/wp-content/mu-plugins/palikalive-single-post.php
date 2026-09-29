@@ -2,29 +2,32 @@
 /**
  * Plugin Name:  PalikaLive Single Post Fixes
  * Description:  Single news page UX fixes — (1) headline + sub-headline auto-hide on scroll, (2) clean sub-headline (red bar removed), (3) share bar shows a live share count with exactly 5 buttons (Facebook, X, Messenger, WhatsApp, Share).
- * Version:      1.0.0
+ * Version:      1.0.1
  * Author:       Palika Live
  * File:         wp-content/mu-plugins/palikalive-single-post.php
- * Marker:       PalikaLive Single Post Fixes v1.0.0
+ * Marker:       PalikaLive Single Post Fixes v1.0.1
  *
  * ───────────────────────────────────────────────────────────────────────────
- *  यो फाइल के गर्छ (छोटो):
- *   1) लेख पढ्दै तल स्क्रोल गर्नासाथ टाइटल + सब-हेडलाइन (sticky) स्वतः लुक्छ;
- *      माथि स्क्रोल गर्दा फेरि देखिन्छ।  (hide_after = 90px)
- *   2) सब-हेडलाइनको रातो ठाडो लाइन हट्छ र सफा "lead" शैलीमा सुन्दर देखिन्छ।
- *   3) शेयर बारमा जीवित शेयर संख्या देखिन्छ + ठ्याक्कै ५ बटन:
- *      Facebook, X, Messenger, WhatsApp, Share  (Viber हट्छ)।
+ * WHAT THIS FILE DOES
+ *   1) While reading, the sticky title + sub-heading block (#pl-post-header)
+ *      hides as soon as the reader scrolls down; it shows again on scroll up.
+ *      (hide_after = 90px)
+ *   2) The sub-heading loses the red vertical bar and gets a clean "lead" style.
+ *   3) The share bar shows a live share count + exactly 5 buttons:
+ *      Facebook, X, Messenger, WhatsApp, Share (Viber is removed).
  *
- *  टेक्निकल नोट:
- *   - साइटमा पहिले नै #pl-post-header लाई hide गर्ने एउटा <head> स्क्रिप्ट छ,
- *     तर त्यो DOM बन्नुअघि चल्ने हुँदा काम गर्दैन (त्यसैले हेडलाइन टाँसिरहन्छ)।
- *     यो फाइलले त्यही काम footer + DOMContentLoaded बाट सही तरिकाले गर्छ,
- *     नयाँ क्लास "plx-title-hidden" प्रयोग गरेर (पुरानोसँग झगडा हुँदैन)।
- *   - शेयर संख्या यही साइटभित्र गनिन्छ (post meta _palika_share_count) र
- *     REST बाट पढिन्छ — कुनै तेस्रो पक्ष API चाहिँदैन (Facebook को पुरानो
- *     share-count API सन् 2019 मै बन्द भइसकेको छ)।
- *   - LiteSpeed cache सुरक्षित: पेज क्यास भए पनि संख्या REST बाट ताजै आउँछ।
- *   - केही मेटाइँदैन; सबै परिवर्तन CSS/JS हुन्। फाइल डिलिट गरे सबै रद्द हुन्छ।
+ * TECHNICAL NOTES
+ *   - The site already had a <head> script that added a hide class to
+ *     #pl-post-header, but it ran before the DOM existed, so it never worked
+ *     (that is why the headline stayed pinned). This file does the same job
+ *     correctly from the footer + DOMContentLoaded, using a new class
+ *     "plx-title-hidden" (no clash with the old code).
+ *   - The share count is counted inside this site (post meta
+ *     _palika_share_count) and read over REST. No third-party API is used
+ *     (Facebook's old public share-count endpoint has been dead since 2019).
+ *   - LiteSpeed-cache safe: even when the page is cached, the count is
+ *     fetched fresh over REST.
+ *   - Nothing is deleted. All changes are CSS/JS. Delete the file to undo all.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -32,33 +35,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /* ===========================================================================
- * 0. CONFIG  (चाहिएमा यहाँका मान फेर्नुहोस्)
+ * 0. CONFIG (change values here)
  * =========================================================================== */
 if ( ! defined( 'PALIKA_SINGLE_CONFIG' ) ) {
 	define(
 		'PALIKA_SINGLE_CONFIG',
 		array(
-			'version'           => '1.0.0',
+			'version'           => '1.0.1',
 
-			/* 1) टाइटल auto-hide */
+			/* 1) Title auto-hide */
 			'autohide'          => true,
-			'hide_after'        => 90,      // कति px तल स्क्रोल गरेपछि लुक्ने
-			'show_on_scroll_up' => true,    // माथि स्क्रोल गर्दा फेरि देखाउने
+			'hide_after'        => 90,      // px scrolled down before the block hides
+			'show_on_scroll_up' => true,    // show it again while scrolling up
 
-			/* 2) सब-हेडलाइन */
-			'subhead_accent'    => false,   // true गरे पातलो गोलो रातो accent लाइन आउँछ
+			/* 2) Sub-heading */
+			'subhead_accent'    => false,   // true = thin rounded red accent line
 
-			/* 3) शेयर बार */
+			/* 3) Share bar */
 			'share_count'       => true,
-			'count_base'        => 0,       // संख्या यहाँबाट सुरु हुन्छ
+			'count_base'        => 0,       // count starts from this number
 			'count_label'       => 'Shares',
 			'count_label_one'   => 'Share',
-			'nepali_digits'     => false,   // true गरे "१०५ Shares" देखिन्छ
-			'kill_viber'        => true,    // Viber बटन हटाउने
-			'add_messenger'     => true,    // Messenger बटन थप्ने
-			'count_copy'        => true,    // Share/Copy बटनको क्लिक पनि गन्ने
+			'nepali_digits'     => false,   // true = show १०५ instead of 105
+			'kill_viber'        => true,    // remove the Viber button
+			'add_messenger'     => true,    // add the Messenger button
+			'count_copy'        => true,    // count taps on the Share/Copy button too
 			'meta_key'          => '_palika_share_count',
-			'rate_seconds'      => 45,      // एउटै पाठक + एउटै लेख = यति सेकेन्डमा १ गणना
+			'rate_seconds'      => 45,      // same reader + same post = one count per N seconds
 		)
 	);
 }
@@ -75,7 +78,7 @@ function plk_single_cfg( $key ) {
 }
 
 /* ===========================================================================
- * 1. REST API — शेयर गणना (GET = पढ्ने, POST = बढाउने)
+ * 1. REST API — share counter (GET = read, POST = increase)
  * =========================================================================== */
 add_action( 'rest_api_init', 'plk_single_register_routes' );
 
@@ -108,7 +111,7 @@ function plk_single_register_routes() {
 }
 
 /**
- * सक्रिय लेख हो कि जाँच्ने (होइन भने 0)।
+ * Returns the post ID only when it is a published post, otherwise 0.
  */
 function plk_single_valid_post( $id ) {
 	$id = absint( $id );
@@ -123,7 +126,7 @@ function plk_single_valid_post( $id ) {
 }
 
 /**
- * हालको संख्या (base सहित)।
+ * Current count (stored value + base).
  */
 function plk_single_count( $id ) {
 	$stored = (int) get_post_meta( $id, plk_single_cfg( 'meta_key' ), true );
@@ -157,7 +160,7 @@ function plk_single_shares_post( WP_REST_Request $request ) {
 		return new WP_REST_Response( array( 'count' => 0 ), 200 );
 	}
 
-	/* दुरुपयोग रोक्न: एउटै IP + एउटै लेख = rate_seconds भित्र एकै पटक */
+	/* Abuse guard: same IP + same post = one count per rate_seconds */
 	$ip  = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '0';
 	$key = 'plk_sh_' . md5( $ip . '|' . $id );
 
@@ -174,7 +177,7 @@ function plk_single_shares_post( WP_REST_Request $request ) {
 }
 
 /* ===========================================================================
- * 2. FRONT END — CSS (head) + JS (footer), लेखको पेजमा मात्र
+ * 2. FRONT END — CSS (head) + JS (footer), single posts only
  * =========================================================================== */
 add_action( 'wp_head', 'plk_single_head', 99 );
 
@@ -227,9 +230,9 @@ function plk_single_footer() {
  * =========================================================================== */
 function plk_single_css() {
 	$css = <<<'CSS'
-/* ===== PalikaLive Single Post Fixes v1.0.0 ===== */
+/* ===== PalikaLive Single Post Fixes v1.0.1 ===== */
 
-/* ---------- १) सब-हेडलाइन: रातो ठाडो लाइन हटाइयो + सफा lead शैली ---------- */
+/* ---------- 1) Sub-heading: red bar removed + clean lead style ---------- */
 .single-sub-heading {
 	border: 0 !important;
 	border-left: 0 !important;
@@ -252,7 +255,7 @@ function plk_single_css() {
 	display: none !important;
 }
 
-/* ---------- २) टाइटल ब्लक auto-hide ---------- */
+/* ---------- 2) Title block auto-hide ---------- */
 #pl-post-header {
 	transition: transform .28s ease, opacity .22s ease !important;
 	will-change: transform;
@@ -267,7 +270,7 @@ function plk_single_css() {
 	#pl-post-header { transition: none !important; }
 }
 
-/* ---------- ३) शेयर बार: संख्या + ५ बटन ---------- */
+/* ---------- 3) Share bar: count + 5 buttons ---------- */
 .pl-share-bar {
 	display: flex !important;
 	flex-wrap: wrap !important;
@@ -291,7 +294,7 @@ function plk_single_css() {
 	gap: 8px !important;
 }
 
-/* शेयर संख्या */
+/* Share count chip */
 .pl-share-count {
 	display: inline-flex !important;
 	align-items: center !important;
@@ -313,7 +316,7 @@ function plk_single_css() {
 .pl-share-count .pl-share-count-n { font-weight: 800 !important; color: #0f172a !important; }
 .pl-share-count .pl-share-count-l { font-weight: 600 !important; color: #64748b !important; margin-left: 2px; }
 
-/* बटन — समान गोल आइकन */
+/* Buttons — equal round icons */
 .pl-share-bar .pl-share-btn {
 	position: relative !important;
 	display: inline-flex !important;
@@ -370,7 +373,7 @@ function plk_single_css() {
 }
 .pl-share-btn.pl-copy[title="Copied!"] { background-color: #16a34a !important; }
 
-/* मोबाइल */
+/* Mobile */
 @media (max-width: 767px) {
 	.pl-share-bar { justify-content: flex-start !important; gap: 8px 10px !important; }
 	.pl-share-bar .pl-share-buttons { margin-left: 0 !important; }
@@ -384,12 +387,12 @@ function plk_single_css() {
 }
 CSS;
 
-	/* सब-हेडलाइनमा वैकल्पिक सुन्दर accent (डिफल्ट बन्द) */
+	/* Optional soft accent line under the sub-heading (default off) */
 	if ( plk_single_cfg( 'subhead_accent' ) ) {
 		$css .= "\n.single-sub-heading { border-left: 3px solid #d90429 !important; border-radius: 2px !important; padding-left: 12px !important; }\n";
 	}
 
-	/* Viber हटाउने (config बाट बन्द गर्न सकिन्छ) */
+	/* Remove the Viber button (can be turned off in config) */
 	if ( plk_single_cfg( 'kill_viber' ) ) {
 		$css .= "\n.pl-share-btn.pl-viber { display: none !important; }\n";
 	}
@@ -398,7 +401,7 @@ CSS;
 }
 
 /* ===========================================================================
- * 4. JAVASCRIPT (vanilla, jQuery चाहिँदैन)
+ * 4. JAVASCRIPT (vanilla, no jQuery)
  * =========================================================================== */
 function plk_single_js_body() {
 	return <<<'JS'
@@ -408,7 +411,7 @@ function plk_single_js_body() {
 	var C = window.PLX_SINGLE;
 	var D = document, W = window;
 
-	/* ---------- १) टाइटल ब्लक auto-hide ---------- */
+	/* ---------- 1) Title block auto-hide ---------- */
 	function plxAutoHide() {
 		if (!C.autohide) { return; }
 		var el = D.getElementById("pl-post-header") || D.querySelector(".single-post .post-header, .post-header");
@@ -442,7 +445,7 @@ function plk_single_js_body() {
 		onScroll();
 	}
 
-	/* ---------- २) शेयर बार ---------- */
+	/* ---------- 2) Share bar ---------- */
 	var bumpTimer = null, bumpN = 0;
 
 	function plxNum(n) {
@@ -529,21 +532,21 @@ function plk_single_js_body() {
 		var wrap = bar.querySelector(".pl-share-buttons-inner") || bar.querySelector(".pl-share-buttons");
 		if (!wrap) { return; }
 
-		/* २a) Viber हटाउने */
+		/* 2a) Remove Viber */
 		if (C.kill_viber) {
 			var viber = wrap.querySelector(".pl-share-btn.pl-viber");
 			if (viber && viber.parentNode) { viber.parentNode.removeChild(viber); }
 		}
 
-		/* २b) Messenger बटन (Facebook र X को बीचमा) */
+		/* 2b) Add Messenger button (between Facebook and X) */
 		if (C.add_messenger && !wrap.querySelector(".pl-share-btn.pl-messenger")) {
 			var m = D.createElement("a");
 			m.className = "pl-share-btn pl-messenger";
 			m.href = "https://www.messenger.com/";
 			m.target = "_blank";
 			m.rel = "noopener nofollow";
-			m.title = "Messenger मा सेयर";
-			m.setAttribute("aria-label", "Messenger मा सेयर");
+			m.title = "Share on Messenger";
+			m.setAttribute("aria-label", "Share on Messenger");
 			m.addEventListener("click", function (e) {
 				if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
 					e.preventDefault();
@@ -556,12 +559,12 @@ function plk_single_js_body() {
 			if (tw && tw.nextSibling) { wrap.insertBefore(m, tw.nextSibling); } else { wrap.appendChild(m); }
 		}
 
-		/* २c) बाँकी बटनका नाम */
+		/* 2c) Button titles / aria labels */
 		var labels = {
-			facebook: "Facebook मा सेयर",
-			twitter: "X (ट्विटर) मा सेयर",
-			whatsapp: "WhatsApp मा सेयर",
-			copy: "सेयर / लिङ्क कपी"
+			facebook: "Share on Facebook",
+			twitter: "Share on X (Twitter)",
+			whatsapp: "Share on WhatsApp",
+			copy: "Share / Copy link"
 		};
 		Object.keys(labels).forEach(function (k) {
 			var b = wrap.querySelector(".pl-share-btn.pl-" + k);
@@ -571,14 +574,14 @@ function plk_single_js_body() {
 			}
 		});
 
-		/* २d) शेयर संख्या */
+		/* 2d) Share count */
 		if (C.share_count) {
 			var chip = wrap.querySelector(".pl-share-count");
 			if (!chip) {
 				chip = D.createElement("span");
 				chip.className = "pl-share-count";
 				chip.setAttribute("data-plx", C.version);
-				chip.setAttribute("title", "शेयर संख्या");
+				chip.setAttribute("title", "Share count");
 				chip.innerHTML = '<b class="pl-share-count-n">' + plxNum(C.count_base) +
 					'</b><span class="pl-share-count-l">' + C.label + "</span>";
 				wrap.insertBefore(chip, wrap.firstChild);
@@ -586,7 +589,7 @@ function plk_single_js_body() {
 			plxLoadCount(chip);
 		}
 
-		/* २e) क्लिक गणना (एकै पटक bind हुन्छ) */
+		/* 2e) Click counting (bound once) */
 		if (!wrap.getAttribute("data-plx-bound")) {
 			wrap.setAttribute("data-plx-bound", "1");
 			wrap.addEventListener("click", function (e) {
