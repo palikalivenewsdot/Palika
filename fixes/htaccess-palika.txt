@@ -1,0 +1,97 @@
+# ==========================================================================
+# Palika Live — .htaccess स्निपेट (चरण ५.१)
+# --------------------------------------------------------------------------
+# कसरी राख्ने:
+#   १) cPanel → File Manager → public_html/.htaccess
+#   २) पहिले कपी लिनुहोस् (Download, वा rename गरेर .htaccess.bak)
+#   ३) तलको भाग फाइलको सुरुमा टाँस्नुहोस् — "# BEGIN WordPress" भन्दा माथि,
+#      WordPress का आफ्नै नियम कहिल्यै नहटाउनुहोस्।
+#   ४) Save गरेपछि साइट खोलेर जाँच्नुहोस् (५००/रिडाइरेक्ट लूप आए तुरुन्तै फिर्ता)।
+#
+# ध्यान: साइट Cloudflare वा ExactDN जस्तो प्रोक्सी/CDN पछाडि छ भने रिडाइरेक्ट
+#        र HSTS त्यहीँ पनि सेट गर्नुहोस् (दुई ठाउँमा हुँदा समस्या हुँदैन)।
+# ==========================================================================
+
+
+# --------------------------------------------------------------------------
+# १) www → non-www, र http → https (एकै ३०१ मा)
+# --------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# www.palikalive.com → palikalive.com
+RewriteCond %{HTTP_HOST} ^www\.palikalive\.com$ [NC]
+RewriteRule ^(.*)$ https://palikalive.com/$1 [R=301,L]
+
+# http → https
+RewriteCond %{HTTPS} !=on
+RewriteRule ^(.*)$ https://palikalive.com/$1 [R=301,L]
+</IfModule>
+
+# (यदि www सहित चलाउने निर्णय गर्नुभयो भने माथिको पहिलो ब्लक उल्टो बनाउनुहोस्:
+#  RewriteCond %{HTTP_HOST} !^www\. [NC]
+#  RewriteRule ^(.*)$ https://www.palikalive.com/$1 [R=301,L] )
+
+
+# --------------------------------------------------------------------------
+# २) HSTS — "https मात्र" ब्राउजरलाई बाध्य पार्ने
+# --------------------------------------------------------------------------
+# ⚠️ पहिले छोटो max-age बाट सुरु गर्नुहोस् (यही 300)। साइटका सबै पेज र सबडोमेन
+#    https मा चलेको पक्का भएपछि मात्र १ वर्ष (31536000) बनाउनुहोस्।
+<IfModule mod_headers.c>
+Header always set Strict-Transport-Security "max-age=300; includeSubDomains"
+
+# (पक्का भइसकेपछि माथिको लाइन यसो बनाउनुहोस् — 'preload' तब मात्र जब सबै
+#  सबडोमेन https होस् र hstspreload.org मा दर्ता गर्ने निर्णय भएको होस्:)
+# Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# थिमले पठाइरहेका हेडर (नोट मात्र — थिममै छ भने यहाँ दोहोर्याउनु पर्दैन):
+#   X-Content-Type-Options: nosniff
+#   X-Frame-Options: SAMEORIGIN
+#   Referrer-Policy: strict-origin-when-cross-origin
+#   Permissions-Policy: geolocation=(), microphone=(), camera=()
+
+
+# --------------------------------------------------------------------------
+# ३) Content-Security-Policy — पहिले Report-Only (तोड्यो कि भनेर हेर्न)
+# --------------------------------------------------------------------------
+# विज्ञापन, Google Analytics, CDN र फन्टले CSP तोड्न सक्छन्। त्यसैले सुरुमा
+# Report-Only राखेर ब्राउजर कन्सोलमा report हेर्नुहोस्; ठीक भएपछि मात्र
+# "Content-Security-Policy" बनाउनुहोस्।
+<IfModule mod_headers.c>
+# Header always set Content-Security-Policy-Report-Only "default-src 'self'; img-src 'self' data: https:; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' https: 'unsafe-inline'; font-src 'self' data: https:; frame-src 'self' https:; connect-src 'self' https:; report-uri /wp-json/palika/v1/csp-report"
+</IfModule>
+
+
+# --------------------------------------------------------------------------
+# ४) ढोका ढक्ने (माथिका स्निपेट लागू भइसकेपछि आफ्नै निर्णयमा)
+# --------------------------------------------------------------------------
+# • डाटाबेस/ब्याकअप फाइल वेबबाट नखुल्ने (URL मै हालेर हेर्नुहोस् — 403 आउनुपर्छ)
+<FilesMatch "\.(sql|sql\.gz|bak|log|ini|sh|tar|zip)$">
+	<IfModule mod_authz_core.c>
+		Require all denied
+	</IfModule>
+	<IfModule !mod_authz_core.c>
+		Order allow,deny
+		Deny from all
+	</IfModule>
+</FilesMatch>
+
+# • wp-config.php र .htaccess आफैं जोगाउने
+<Files wp-config.php>
+	<IfModule mod_authz_core.c>
+		Require all denied
+	</IfModule>
+</Files>
+
+# • Directory listing बन्द
+Options -Indexes
+
+# • (छानिएको) XML-RPC मार्फत हुने ब्रुटफोर्स कम गर्न — Jetpack जस्ता सेवा
+#   प्रयोग गर्दै हुनुहुन्छ भने यो नराख्नुहोस्:
+<Files xmlrpc.php>
+	<IfModule mod_authz_core.c>
+		Require all denied
+	</IfModule>
+</Files>
