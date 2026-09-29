@@ -1,39 +1,42 @@
 <?php
 /**
  * Plugin Name:  PalikaLive Single Post Fix
- * Description:  Single news page fixes without touching the theme: (1) the headline block is never pinned while reading — it hides on scroll down and returns on scroll up, (2) the sub-headline red bar / grey box is removed, (3) the share bar shows a live share count + Facebook, X, Messenger, WhatsApp, Share.
- * Version:      3.0.0
+ * Description:  Single news page fixes without touching the theme: (1) the headline block is NEVER pinned — it leaves the screen the moment the reader scrolls down and a small bar comes back on scroll up, (2) the sub-headline red bar / grey box is removed, (3) the share bar shows a live share count + Facebook, X, Messenger, WhatsApp, Share. Also hides the injected homepage H1 visually (it stays there for SEO / screen readers).
+ * Version:      3.1.0
  * Author:       Palika Live
  * File:         wp-content/mu-plugins/palikalive-single.php
- * Marker:       PalikaLive Single Post Fix v3.0.0
+ * Marker:       PalikaLive Single Post Fix v3.1.0
  *
  * ---------------------------------------------------------------------------
  * WHAT THIS FILE DOES
- *   1) Title block: #pl-post-header is never pinned while the reader scrolls
- *      down. Past 100px of scroll it is taken off screen; scrolling back up
- *      brings the small bar back; near the top of the page everything is
- *      normal. (The theme's own script can be moved into <head> by LiteSpeed
- *      JS optimization, where the element does not exist yet — that is why
- *      the old behaviour looked broken. This script always waits for the DOM.)
- *   2) Sub-headline: the red vertical bar and the grey box are removed and it
- *      becomes a clean lead paragraph.
- *   3) Share bar: Viber is removed, Messenger is added, the count chip is
- *      added (left of the icons) and the last button becomes a real Share
- *      button (native share sheet on phones, copy link on desktop).
+ *   1) Title block (#pl-post-header)
+ *      a. The block can never be pinned in its normal state: the rule
+ *         "#pl-post-header { position: static !important }" beats any theme /
+ *         optimizer CSS that tries to keep it on screen. This is what was
+ *         still missing in v3.0.0 — the theme's CSS pinned `.post-header`,
+ *         so the headline + sub-headline stayed visible while reading.
+ *      b. On top of that, JS hides it the moment the reader scrolls down
+ *         (past 80px) and brings a small sticky bar back on scroll up.
+ *   2) Sub-headline: the red vertical bar and the grey box are removed.
+ *   3) Share bar: Viber is removed, Messenger is added, a live share count
+ *      chip is added and the last button becomes a real Share button.
+ *   4) Homepage H1 (added by the fix pack) is hidden visually — it stays in
+ *      the HTML for Google and screen readers, but visitors never see the
+ *      grey strip. Prefer it fully gone? In palikalive-fixes.php set
+ *      'home_h1' => false.
  *
  * WHY THIS IS SAFE
  *   - The theme's files are NOT edited. Delete (or rename) this one file and
  *     the site is exactly like before.
- *   - CSS/JS only + one small AJAX counter. No database change, nothing is
- *     deleted. If the share counter is ever a problem, the bar still works:
- *     the number just stays as printed.
+ *   - CSS/JS only + one small AJAX counter. No database change.
  *   - The counter lives in the post meta "_palika_share_count" and is served
- *     by admin-ajax.php, which is never page-cached, so the number is always
- *     fresh even on cached pages.
+ *     by admin-ajax.php, which is never page-cached, so the number is fresh
+ *     even on cached pages.
  *
- * HOW TO INSTALL
- *   cPanel -> File Manager -> public_html/wp-content/mu-plugins/ -> + File ->
- *   name it palikalive-single.php -> paste -> Save -> LiteSpeed Purge All.
+ * HOW TO INSTALL / UPDATE
+ *   cPanel -> File Manager -> public_html/wp-content/mu-plugins/ ->
+ *   open palikalive-single.php -> select all -> paste this whole file ->
+ *   Save -> LiteSpeed Cache: Purge All -> Ctrl+Shift+R in the browser.
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -48,7 +51,7 @@ add_action( 'wp_ajax_nopriv_pklv_share', 'pklv_share_ajax' );
 add_action( 'wp_ajax_pklv_share', 'pklv_share_ajax' );
 
 function pklv_share_ajax() {
-	/* Never cache this answer (page cache must not freeze the number). */
+	/* Never cache this answer (the page cache must not freeze the number). */
 	nocache_headers();
 	if ( ! headers_sent() ) {
 		header( 'X-LiteSpeed-Cache-Control: no-cache' );
@@ -92,17 +95,28 @@ function pklv_share_ajax() {
 }
 
 /* ===========================================================================
- * 2. FRONT END — CSS in <head>, JS in the footer, single posts only
+ * 2. FRONT END — CSS in <head>, JS in the footer
  * =========================================================================== */
 add_action( 'wp_head', 'pklv_head_css', 99 );
 
 function pklv_head_css() {
+
+	/* (a) Homepage H1 from the fix pack: keep it, hide it visually. */
+	if ( is_home() || is_front_page() ) {
+		echo '<style id="pklv-h1-hide">'
+			. '.palika-home-h1{position:absolute!important;width:1px!important;height:1px!important;'
+			. 'margin:-1px!important;padding:0!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;'
+			. 'clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important;background:none!important;'
+			. 'color:transparent!important;font-size:1px!important;box-shadow:none!important}'
+			. '</style>' . "\n";
+	}
+
 	if ( ! is_singular( 'post' ) ) {
 		return;
 	}
 
 	$css = '
-/* ===== PalikaLive Single Post Fix v3.0.0 ===== */
+/* ===== PalikaLive Single Post Fix v3.1.0 ===== */
 
 /* (1) Sub-headline: red bar + grey box removed, clean lead paragraph. */
 .single-sub-heading {
@@ -120,37 +134,40 @@ function pklv_head_css() {
 	margin: 2px 0 16px !important;
 }
 
-/* (2) Title block: hidden state (wins over anything else in the stack). */
-#pl-post-header.plk-hidden,
-#pl-post-header.pl-head-hidden {
-	transform: translateY(-130%) !important;
-	opacity: 0 !important;
-	visibility: hidden !important;
-	pointer-events: none !important;
+/* (2) Title block.
+   Base state: the block can NEVER be pinned — whatever the theme or an
+   optimizer CSS tries, it scrolls away with the page. */
+#pl-post-header {
+	position: static !important;
+	top: auto !important;
 }
-/* Compact bar while reading (fallback rules — the theme usually has its own,
-   !important here only matters if that CSS is missing). */
+
+/* Small sticky bar while reading (added by the script on scroll up). */
 #pl-post-header.pl-head-compact {
-	position: fixed !important;
+	position: -webkit-sticky !important;
+	position: sticky !important;
 	top: 0 !important;
-	left: 0 !important;
-	right: 0 !important;
-	width: 100% !important;
 	z-index: 999 !important;
 	background: #ffffff !important;
 	padding: 9px 0 8px !important;
-	margin: 0 !important;
+	margin-bottom: 12px !important;
 	box-shadow: 0 4px 14px rgba(11, 37, 69, 0.10) !important;
-	transition: transform 0.3s ease, opacity 0.2s ease !important;
+	transition: transform 0.28s ease, opacity 0.2s ease !important;
 }
 #pl-post-header.pl-head-compact .single-title {
 	font-size: 18px !important;
 	line-height: 1.35 !important;
 	margin: 0 !important;
+	max-height: 3em;
+	overflow: hidden;
 }
-#pl-post-header.pl-head-compact .single-sub-heading,
-#pl-post-header.pl-head-compact.plk-hidden .single-sub-heading {
+#pl-post-header.pl-head-compact .single-sub-heading {
 	display: none !important;
+}
+#pl-post-header.pl-head-compact .heading {
+	font-size: 11.5px !important;
+	padding: 3px 8px !important;
+	margin-bottom: 6px !important;
 }
 body.admin-bar #pl-post-header.pl-head-compact {
 	top: 32px !important;
@@ -159,6 +176,15 @@ body.admin-bar #pl-post-header.pl-head-compact {
 	body.admin-bar #pl-post-header.pl-head-compact {
 		top: 46px !important;
 	}
+}
+
+/* Hidden state — printed last, so it always wins. */
+#pl-post-header.plk-hidden,
+#pl-post-header.pl-head-hidden {
+	transform: translateY(-130%) !important;
+	opacity: 0 !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
 }
 @media (prefers-reduced-motion: reduce) {
 	#pl-post-header {
@@ -199,7 +225,7 @@ body.admin-bar #pl-post-header.pl-head-compact {
 }
 ';
 
-	echo "\n<!-- PalikaLive Single Post Fix v3.0.0 -->\n";
+	echo "\n<!-- PalikaLive Single Post Fix v3.1.0 -->\n";
 	echo '<style id="pklv-css">' . $css . "</style>\n";
 }
 
@@ -240,34 +266,39 @@ function pklv_footer_js() {
 	}
 
 	/* -----------------------------------------------------------------
-	 * 1. Title block: never pinned while scrolling down.
+	 * 1. Title block: leaves the screen as soon as the reader scrolls
+	 *    down; a small sticky bar comes back on scroll up.
 	 * ----------------------------------------------------------------- */
 	function titleBar() {
 		var head = D.getElementById("pl-post-header");
 		if (!head) { return; }
 
-		var HIDE_AT = 100;      // px scrolled before the block leaves the screen
-		var DELTA   = 4;        // px of movement needed to react
+		var HIDE_AT = 80;   // px scrolled before the block may stick/hide
+		var SHOW_UP = 8;    // px of upward movement needed to bring it back
 		var lastY   = W.pageYOffset || 0;
 		var tick    = false;
 
-		function addAll() {
-			head.classList.add("pl-head-compact");
-		}
 		function hide() {
 			head.classList.add("pl-head-compact");
 			head.classList.add("pl-head-hidden");
 			head.classList.add("plk-hidden");
+			/* Inline copy: wins over any theme rule without !important. */
+			head.style.setProperty("transform", "translateY(-130%)", "important");
+			head.style.setProperty("opacity", "0", "important");
 		}
 		function show() {
 			head.classList.add("pl-head-compact");
 			head.classList.remove("pl-head-hidden");
 			head.classList.remove("plk-hidden");
+			head.style.removeProperty("transform");
+			head.style.removeProperty("opacity");
 		}
 		function top() {
 			head.classList.remove("pl-head-compact");
 			head.classList.remove("pl-head-hidden");
 			head.classList.remove("plk-hidden");
+			head.style.removeProperty("transform");
+			head.style.removeProperty("opacity");
 		}
 
 		function step() {
@@ -276,13 +307,11 @@ function pklv_footer_js() {
 			var dy = y - lastY;
 
 			if (y <= HIDE_AT) {
-				top();
-			} else if (dy > DELTA) {
-				hide();            // scrolling down -> get out of the way
-			} else if (dy < -DELTA) {
-				show();            // scrolling up -> small bar back
-			} else if (y > HIDE_AT && !head.classList.contains("pl-head-compact")) {
-				addAll();
+				top();                          /* back at the headline */
+			} else if (dy > 1) {
+				hide();                         /* scrolling down -> gone */
+			} else if (dy < -SHOW_UP) {
+				show();                         /* scrolling up -> small bar */
 			}
 
 			lastY = y;
@@ -296,6 +325,7 @@ function pklv_footer_js() {
 		}
 
 		W.addEventListener("scroll", onScroll, { passive: true });
+		W.addEventListener("load", function () { lastY = W.pageYOffset || 0; step(); });
 		step();
 	}
 
@@ -446,6 +476,6 @@ function pklv_footer_js() {
 })();
 JS;
 
-	echo "\n<!-- PalikaLive Single Post Fix v3.0.0 -->\n";
+	echo "\n<!-- PalikaLive Single Post Fix v3.1.0 -->\n";
 	echo '<script id="pklv-js">window.PKLVS = ' . wp_json_encode( $data ) . ";\n" . $js . "</script>\n";
 }
