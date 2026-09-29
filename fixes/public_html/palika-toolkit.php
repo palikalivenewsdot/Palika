@@ -645,7 +645,7 @@ if ( isset( $_GET['pkt_export'] ) && check_admin_referer( 'palika_toolkit_export
 <?php if ( ! $mu_ready ) : ?>
 	<div class="note">
 		<strong>mu-plugin जडान भएको छैन।</strong> सुधार प्याक चलाउन
-		<code>fixes/mu-plugins/palikalive-fixes.php</code> लाई
+		<code>palikalive-fixes.php</code> लाई
 		<code>wp-content/mu-plugins/</code> भित्र Upload गर्नुहोस् (फोल्डर छैन भने बनाउनुहोस्)।
 	</div>
 <?php else : ?>
