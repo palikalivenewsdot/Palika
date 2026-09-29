@@ -91,6 +91,7 @@
 
 ## चरण ७ — गति ⏱ १–२ घण्टा · जोखिम मध्यम (टेस्ट गर्दै)
 
+- [ ] ⚠️ **पहिले जाँच्नुहोस्:** Ad Engine plugin ले क्यास बन्द गरिरहेको छ भने `fixes/ad-engine-cache-fix.md` हेरेर त्यो ठीक गर्नुहोस् — नत्र तलको LiteSpeed ON गर्नुको अर्थ छैन
 - [ ] **LiteSpeed Cache** — Cache ON, CSS/JS Minify, Defer, Lazy Load, UCSS, WebP, Font Display swap → प्रत्येक पटक **Purge All**
 - [ ] **S6** — फन्ट ७ → २ (`header.php`)
 - [ ] **S7** — लाइब्रेरी आवश्यक पेजमा मात्र (`functions.php`)
