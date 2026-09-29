@@ -1,14 +1,14 @@
 <?php
 /**
  * Plugin Name: PalikaLive Ad Engine
- * Description: Single-file ad engine (v47). Cache-friendly header, in-article and shortcode ad slots with per-page-load rotation, sponsored links and a kill switch.
- * Version:     47.0.0
+ * Description: Single-file ad engine (v48). Cache-friendly header, a fixed three-in-a-row in-article block labelled ADVERTISEMENT, rotating shortcode slots, sponsored links and a kill switch.
+ * Version:     48.0.0
  * Author:      PalikaLive
  * License:     GPL-2.0-or-later
  *
  * ==========================================================================
  * FILE          wp-content/mu-plugins/palikalive-ads.php   (same name as now)
- * REPLACES      PalikaLive Master Ad Engine v46
+ * REPLACES      PalikaLive Master Ad Engine v46 / v47 (same file name)
  * REQUIRES      WordPress 5.8+ / PHP 7.4+
  * ==========================================================================
  *
@@ -39,7 +39,7 @@
  * 2. Ad rotation: give a slot 2-5 creatives and one is chosen per page load in
  *    the browser (count parameter / shortcode count="3"). This keeps the page
  *    cacheable AND the ad fresh - the problem v46 tried to solve by killing
- *    the cache.
+ *    the cache. (The in-article block is the exception: v48 item 10 below.)
  * 3. Paid ad links now carry rel="sponsored noopener noreferrer".
  * 4. The in-article ad no longer breaks the article HTML. v46 used
  *    explode('</p>') + implode(''), which deleted every </p> it split on:
@@ -57,6 +57,24 @@
  * 9. no_found_rows on the ad query (one less COUNT(*) query per slot).
  *
  * ==========================================================================
+ * WHAT CHANGED VS v47  (this version)
+ * ==========================================================================
+ * 10. The in-article slot is a fixed row now - it no longer rotates:
+ *
+ *        ADVERTISEMENT                    <- small grey label (English)
+ *        [ ad 1 ][ ad 2 ][ ad 3 ]         <- one row, three equal boxes
+ *
+ *     * All three ads are visible at the same time. Nothing is hidden.
+ *     * Maximum three creatives: the three newest ads of the "in-between"
+ *       position. A fourth ad in that position is ignored on purpose.
+ *     * Every box is exactly the same size and the same height (1:1 boxes,
+ *       image fitted with object-fit: contain), so a wide 728x84 banner, a
+ *       square 250x250 creative and a tall poster all sit in identical boxes.
+ *       Nothing jumps up or down between page loads.
+ *     * The word ADVERTISEMENT is printed in pklv_ads_get_row() (section 4c).
+ *     The header slot and the [palika_ad] shortcode still rotate as before.
+ *
+ * ==========================================================================
  * QUICK CONTROLS (wp-config.php)
  * ==========================================================================
  * define( 'PKLV_ADS_ENABLED', false );   // all ad output off instantly
@@ -72,7 +90,8 @@
  * - Header slow? print it server-side in header.php:
  *      <div class="pl-header-ad-flex"><?php echo pklv_header_ad_html(); ?></div>
  *   and add define( 'PKLV_ADS_HEADER_JS', false ); to wp-config.php
- * - In-article slot name: ad_position taxonomy term "in-between"
+ * - In-article block: fixed row of up to three ads with the ADVERTISEMENT
+ *   label, taken from ad_position taxonomy term "in-between" (newest three).
  * - Header slot name:     ad_position taxonomy term "header-banner"
  * - Which file is live:   View Source and search for "PalikaLive Ad Engine v"
  *                         (a one-line HTML comment is printed in <head>)
@@ -97,7 +116,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function pklv_ads_duplicate_notice() {
 	echo '<div class="notice notice-error"><p><strong>PalikaLive Ad Engine:</strong> '
-		. 'an older copy of the engine is still active, so v47 is inactive. '
+		. 'an older copy of the engine is still active, so v48 is inactive. '
 		. 'Rename the old file inside wp-content/mu-plugins/ (for example add .bak to the file name) and reload this page.</p></div>';
 }
 
@@ -111,7 +130,7 @@ if ( function_exists( 'pklv_master_get_ad' ) ) {
  * ========================================================================== */
 
 if ( ! defined( 'PKLV_ADS_VERSION' ) ) {
-	define( 'PKLV_ADS_VERSION', '47.0.0' );
+	define( 'PKLV_ADS_VERSION', '48.0.0' );
 }
 
 // Master switch. define( 'PKLV_ADS_ENABLED', false ); stops every ad instantly.
@@ -191,7 +210,7 @@ add_action( 'wp_head', 'pklv_ads_frontend_css', 99 );
  */
 function pklv_ads_frontend_css() {
 	?>
-<style id="pklv-v47-css">
+<style id="pklv-v48-css">
 	.pl-banner-box {
 		display: block !important;
 		visibility: visible !important;
@@ -232,6 +251,60 @@ function pklv_ads_frontend_css() {
 	.pl-banner-box[data-pklv-rotate] {
 		min-height: 100px;
 	}
+	/* Fixed three-in-a-row block (in-article, v48). */
+	.pl-ad-row-wrap {
+		display: block !important;
+		width: 100% !important;
+		max-width: 100% !important;
+		margin: 22px auto !important;
+		clear: both !important;
+	}
+	.pl-ad-label {
+		display: block !important;
+		text-align: center !important;
+		font-size: 11px !important;
+		line-height: 1 !important;
+		font-weight: 600 !important;
+		letter-spacing: 0.18em !important;
+		text-transform: uppercase !important;
+		color: #8b9096 !important;
+		margin: 0 0 10px !important;
+	}
+	.pl-ad-row {
+		display: flex !important;
+		flex-wrap: nowrap !important;
+		align-items: stretch !important;
+		justify-content: center !important;
+		gap: 12px !important;
+		width: 100% !important;
+		max-width: 100% !important;
+	}
+	.pl-ad-row__item {
+		flex: 1 1 0 !important;
+		min-width: 0 !important;
+		box-sizing: border-box !important;
+		aspect-ratio: 1 / 1 !important;
+		background: #ffffff !important;
+		border: 1px solid #ececec !important;
+		border-radius: 6px !important;
+		overflow: hidden !important;
+		line-height: 0 !important;
+	}
+	.pl-ad-row__item a {
+		display: block !important;
+		width: 100% !important;
+		height: 100% !important;
+		line-height: 0 !important;
+		text-decoration: none !important;
+	}
+	.pl-ad-row__item img {
+		display: block !important;
+		width: 100% !important;
+		height: 100% !important;
+		object-fit: contain !important;
+		margin: 0 !important;
+		border-radius: 0 !important;
+	}
 	@media screen and (max-width: 768px) {
 		.pl-banner-box img {
 			width: 100% !important;
@@ -244,6 +317,15 @@ function pklv_ads_frontend_css() {
 			max-height: none !important;
 			width: 100% !important;
 		}
+		.pl-ad-row {
+			gap: 6px !important;
+		}
+		.pl-ad-row__item {
+			border-radius: 4px !important;
+		}
+		.pl-ad-label {
+			letter-spacing: 0.12em !important;
+		}
 	}
 </style>
 	<?php
@@ -253,30 +335,32 @@ function pklv_ads_frontend_css() {
  * 4. AD OUTPUT ENGINE
  * ========================================================================== */
 
-if ( ! function_exists( 'pklv_master_get_ad' ) ) {
+/* ==========================================================================
+ * 4a. CREATIVE DATA
+ *     One place that turns an ad position into a list of creatives, shared by
+ *     the rotating slot (4b) and the fixed row (4c).
+ * ========================================================================== */
+
+if ( ! function_exists( 'pklv_ads_get_creatives' ) ) {
 
 	/**
-	 * Build the HTML of one ad slot.
+	 * Collect the creatives of one ad position.
 	 *
-	 * @param string $slug  Ad position slug (ad_position taxonomy term).
-	 * @param string $align Text alignment: left|center|right.
-	 * @param int    $count How many creatives to print (1-5). More than one turns
-	 *                      the slot into a rotating slot handled in the browser.
-	 * @param bool   $eager Print images eagerly (use for the header slot).
-	 * @return string
+	 * @param string $slug    Ad position slug (ad_position taxonomy term).
+	 * @param int    $count   Maximum creatives to fetch (1-5).
+	 * @param string $loading Image loading mode: high|low|lazy.
+	 * @param string $order   rand (rotating slots) or newest (fixed row).
+	 * @return array
 	 */
-	function pklv_master_get_ad( $slug = '', $align = 'center', $count = 1, $eager = false ) {
+	function pklv_ads_get_creatives( $slug = '', $count = 1, $loading = 'low', $order = 'rand' ) {
 
 		if ( ! PKLV_ADS_ENABLED || empty( $slug ) ) {
-			return '';
+			return array();
 		}
 
-		$slug  = sanitize_text_field( trim( $slug ) );
-		$count = max( 1, min( 5, (int) $count ) );
-
-		// Never pass a raw value into a style attribute.
-		$allowed_align = array( 'left', 'center', 'right' );
-		$align         = in_array( $align, $allowed_align, true ) ? $align : 'center';
+		$slug    = sanitize_text_field( trim( $slug ) );
+		$count   = max( 1, min( 5, (int) $count ) );
+		$orderby = ( 'newest' === $order ) ? array( 'date' => 'DESC' ) : 'rand';
 
 		// Accept both dash and underscore spellings of the term slug.
 		$slug_variations = array_values(
@@ -294,7 +378,7 @@ if ( ! function_exists( 'pklv_master_get_ad' ) ) {
 				'post_type'              => 'ads',
 				'posts_per_page'         => $count,
 				'post_status'            => 'publish',
-				'orderby'                => 'rand',
+				'orderby'                => $orderby,
 				'suppress_filters'       => true,  // Bypass WPML/Polylang filtering.
 				'no_found_rows'          => true,  // Skip the extra COUNT(*) query.
 				'update_post_term_cache' => false,
@@ -310,7 +394,7 @@ if ( ! function_exists( 'pklv_master_get_ad' ) ) {
 		);
 
 		if ( ! $query->have_posts() ) {
-			return '';
+			return array();
 		}
 
 		$creatives = array();
@@ -358,15 +442,44 @@ if ( ! function_exists( 'pklv_master_get_ad' ) ) {
 				'link'   => $link,
 				'target' => $target,
 				'rel'    => $rel,
-				'img'    => '<img src="' . esc_url( $image ) . '" alt="' . esc_attr( get_the_title() ) . '"' . pklv_ads_image_loading( $eager ) . '>',
+				'img'    => '<img src="' . esc_url( $image ) . '" alt="' . esc_attr( get_the_title() ) . '"' . pklv_ads_image_loading( $loading ) . '>',
 			);
 		}
 
 		wp_reset_postdata();
 
+		return $creatives;
+	}
+}
+
+/* ==========================================================================
+ * 4b. ROTATING / SINGLE SLOT (header, shortcode, theme calls)
+ * ========================================================================== */
+
+if ( ! function_exists( 'pklv_master_get_ad' ) ) {
+
+	/**
+	 * Build the HTML of one ad slot.
+	 *
+	 * @param string $slug  Ad position slug (ad_position taxonomy term).
+	 * @param string $align Text alignment: left|center|right.
+	 * @param int    $count How many creatives to print (1-5). More than one turns
+	 *                      the slot into a rotating slot handled in the browser.
+	 * @param bool   $eager Print images eagerly (use for the header slot).
+	 * @return string
+	 */
+	function pklv_master_get_ad( $slug = '', $align = 'center', $count = 1, $eager = false ) {
+
+		$slug      = sanitize_text_field( trim( $slug ) );
+		$creatives = pklv_ads_get_creatives( $slug, $count, $eager ? 'high' : 'low', 'rand' );
+
 		if ( ! $creatives ) {
 			return '';
 		}
+
+		// Never pass a raw value into a style attribute.
+		$allowed_align = array( 'left', 'center', 'right' );
+		$align         = in_array( $align, $allowed_align, true ) ? $align : 'center';
 
 		$rotate = ( count( $creatives ) > 1 );
 		$output = '';
@@ -397,21 +510,64 @@ if ( ! function_exists( 'pklv_master_get_ad' ) ) {
 	}
 }
 
+/* ==========================================================================
+ * 4c. FIXED THREE-IN-A-ROW BLOCK (in-article)
+ *     No rotation: every ad is visible at once. Equal 1:1 boxes + object-fit
+ *     keep creatives of any size in the same box, so nothing jumps up or down.
+ * ========================================================================== */
+
+if ( ! function_exists( 'pklv_ads_get_row' ) ) {
+
+	/**
+	 * Build the fixed three-in-a-row ad block used in articles.
+	 *
+	 * @param string $slug  Ad position slug (ad_position taxonomy term).
+	 * @param int    $limit Creatives in the row (1-3, hard cap 3).
+	 * @return string
+	 */
+	function pklv_ads_get_row( $slug = '', $limit = 3 ) {
+
+		$limit     = max( 1, min( 3, (int) $limit ) );
+		$creatives = pklv_ads_get_creatives( $slug, $limit, 'lazy', 'newest' );
+
+		if ( ! $creatives ) {
+			return '';
+		}
+
+		$output  = '<div class="pl-ad-row-wrap pl-slot-row-' . esc_attr( $slug ) . '">';
+		$output .= '<div class="pl-ad-label">ADVERTISEMENT</div>';
+		$output .= '<div class="pl-ad-row">';
+
+		foreach ( $creatives as $creative ) {
+			$output .= '<div class="pl-ad-row__item">' . pklv_ads_render_creative( $creative, false, false ) . '</div>';
+		}
+
+		$output .= '</div></div>';
+
+		return $output;
+	}
+}
+
 /**
  * Loading attributes for one ad image.
  *
- * @param bool $eager Eager loading (header slot).
+ * @param string $mode high (header) | low (rotating slot) | lazy (fixed row).
  * @return string
  */
-function pklv_ads_image_loading( $eager ) {
+function pklv_ads_image_loading( $mode = 'lazy' ) {
 
-	if ( $eager ) {
+	if ( 'high' === $mode ) {
 		return ' loading="eager" fetchpriority="high"';
 	}
 
-	// In a rotating slot every creative is loaded eagerly at low priority, so
-	// the ad is ready the moment the browser swaps to it.
-	return ' loading="eager" fetchpriority="low" decoding="async"';
+	if ( 'low' === $mode ) {
+		// A rotating slot loads every creative at low priority, so the ad is
+		// ready the moment the browser swaps to it.
+		return ' loading="eager" fetchpriority="low" decoding="async"';
+	}
+
+	// Fixed row: each box is loaded as the reader approaches it.
+	return ' loading="lazy" decoding="async"';
 }
 
 /**
@@ -569,14 +725,16 @@ add_filter( 'widget_text', 'do_shortcode' );
 add_filter( 'widget_block_content', 'do_shortcode' );
 
 /* ==========================================================================
- * 8. IN-ARTICLE AD
- *    Inserted after the second </p>. v46 lost every closing </p> because it
- *    used explode('</p>') + implode(''), which produced invalid article HTML.
+ * 8. IN-ARTICLE AD ROW
+ *    Inserted after the second </p>: a fixed row of up to three ads with the
+ *    ADVERTISEMENT label (v48, section 4c). v46 lost every closing </p> here
+ *    because it used explode('</p>') + implode(''), which produced invalid
+ *    article HTML.
  * ========================================================================== */
 add_filter( 'the_content', 'pklv_ads_inject_in_article', 20 );
 
 /**
- * Add one ad slot after the second paragraph of an article.
+ * Add the fixed three-ad row after the second paragraph of an article.
  *
  * @param string $content Post content.
  * @return string
@@ -590,8 +748,8 @@ function pklv_ads_inject_in_article( $content ) {
 		return $content;
 	}
 
-	// 2 creatives = the slot rotates per page load while the page stays cached.
-	$ad = pklv_master_get_ad( 'in-between', 'center', 2 );
+	// Fixed row: no rotation, all three ads are visible at the same time.
+	$ad = pklv_ads_get_row( 'in-between', 3 );
 	if ( '' === $ad ) {
 		return $content;
 	}

@@ -255,9 +255,11 @@ define( 'PKLV_ADS_HEADER_JS', false );
 
 ---
 
-## 📦 v47 — तयार (एउटै फाइल, उही नाम)
+## 📦 v48 — तयार (एउटै फाइल, उही नाम)
 
 **फाइल:** `fixes/wp-content/mu-plugins/palikalive-ads.php` → सर्भरमा `wp-content/mu-plugins/palikalive-ads.php`
+
+> **v48 मा के फेरियो (v47 भन्दा):** लेखभित्रको ad अब घुम्दैन (rotation बन्द)। दोस्रो अनुच्छेदपछि **तीनवटा ad एउटै पंक्तिमा** देखिन्छन् — तीनै बराबर वर्गाकार बक्स, जतिसुकै ठूलो/फरक साइजको creative भए पनि तलमाथि सर्दैन; माथि अंग्रेजीमा **ADVERTISEMENT** लेबल। बढीमा ३ — चौथो ad त्यो ठाउँमा राखे पनि देखिँदैन; कुन देखिने भने `in-between` का **नयाँ ३**। हेडर र `[palika_ad]` shortcode अझै rotation गर्छन्।
 
 यसमै सेक्सन १–७ सबै छन् (स्थिर CSS, इन्जिन, rotation, hooks, shortcodes, लेखभित्रको ad, हेडर) + थप:
 
@@ -265,9 +267,9 @@ define( 'PKLV_ADS_HEADER_JS', false );
 |---|---|
 | `PKLV_ADS_ENABLED` kill switch | आपत्कालमा `wp-config.php` बाट एक लाइनले सबै ad बन्द |
 | Cache policy | क्यास खुला; `?pklv_ads_debug=1` (admin) वा `PKLV_ADS_NOCACHE` मा मात्र बाइपास |
-| Rotation (`count` प्यारामिटर) | क्यास खुलै रहँदा पनि हरेक लोडमा फरक ad |
+| Rotation (`count` प्यारामिटर) | क्यास खुलै रहँदा पनि हरेक लोडमा फरक ad (हेडर/shortcode; लेखभित्रको पंक्ति v48 मा स्थिर) |
 | `rel="sponsored"` | Google को सशुल्क-लिङ्क नीति |
-| in-article fix | v46 को `explode/implode` बग हटाइयो (HTML मान्य) |
+| in-article fix | v46 को `explode/implode` बग हटाइयो (HTML मान्य) — v48: तीनवटा एउटै पंक्तिमा, rotation बन्द |
 | Zero-collision guard | पुरानो फाइल छुटे दोहोरो ad वा fatal नहोस् — admin notice मात्र |
 | `pklv_header_ad_html()` | हेडर सर्भर-साइड छापेर layout shift हटाउने विकल्प |
 | `function_exists` guards | कुनै अर्को फाइलले उही function राखे पनि crash हुँदैन |
@@ -281,7 +283,7 @@ define( 'PKLV_ADS_HEADER_JS', false );
 
 ### जाँच (४ बुँदा)
 - [ ] हेडरमा ad देखियो (लोगोको दायाँ वा तोकिएको ठाउँमा)
-- [ ] एउटा लेख खोल्दा दोस्रो अनुच्छेदपछि ad देखियो, लेआउट बिग्रिएको छैन
+- [ ] एउटा लेख खोल्दा दोस्रो अनुच्छेदपछि **ADVERTISEMENT लेबल सहित तीनवटा ad एउटै पंक्तिमा** देखिए, तीनै बराबर साइज
 - [ ] View Source मा `<div class="pl-slot-header-banner"` र `rel="sponsored` देखियो
 - [ ] DevTools → Network → डकुमेन्टमा `x-litespeed-cache: hit` (पहिलो लोड `miss`, दोस्रोमा `hit`)
 
@@ -290,5 +292,5 @@ define( 'PKLV_ADS_HEADER_JS', false );
 - Category page slots र Admin settings — भए पठाउनुहोस्
 
 ### दुई सम्झनुहोस्
-1. **क्यास बन्द गर्नुअब कहिल्यै आवश्यक छैन** — rotation का लागि स्लटमा २–३ creative राख्नुहोस् (`[palika_ad position="header" count="3"]` वा `pklv_master_get_ad('in-between','center',3)`)।
+1. **क्यास बन्द गर्नुअब कहिल्यै आवश्यक छैन** — हेडर/shortcode को rotation का लागि स्लटमा २–३ creative राख्नुहोस् (`[palika_ad position="header" count="3"]`)। लेखभित्रको पंक्ति (v48) सधैं स्थिर — नयाँ ३ ad।
 2. **LiteSpeed → Cache → TTL Public = 3600** राख्नुहोस् — ad प्रति घण्टा नयाँ सेट पनि पाइन्छ, गति पनि।
