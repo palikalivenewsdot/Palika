@@ -10,8 +10,11 @@
 
 | फाइल | सर्भरमा कहाँ जान्छ | के हो |
 |---|---|---|
-| `fixes/wp-content/mu-plugins/palikalive-fixes.php` | `wp-content/mu-plugins/` | **सुधार प्याक** — ९ ब्लक, सेटिङबाट चालु/बन्द, rename गर्दा सबै रद्द |
-| `fixes/public_html/palika-toolkit.php` | `public_html/` | **जाँच उपकरण** (admin-मात्र) — स्क्यान रिपोर्ट + ब्याकअप सहित २ सुरक्षित मर्मत |
+| `fixes/wp-content/mu-plugins/palikalive-fixes.php` | `wp-content/mu-plugins/` | **सुधार प्याक v2.0.0** — ९ ब्लक, सेटिङबाट चालु/बन्द (`views_meta_key = sandesh_post_views_count` मिलाइयो), rename गर्दा सबै रद्द |
+| `fixes/wp-content/mu-plugins/palikalive-speed.php` | `wp-content/mu-plugins/` | **Speed Pack v1.0.0** — फन्ट ७ → पेजले प्रयोग गरेको मात्र (`display=swap`), fonts.gstatic + image CDN preconnect, `?pklv_speed_report=1` रिपोर्ट |
+| `fixes/public_html/palika-scan.php` | `public_html/` | **छिटो स्क्यान** (admin-मात्र, read-only) — चलाइसकियो, अब डिलिट गर्ने |
+| `fixes/public_html/palika-cache-find.php` | `public_html/` | **क्यास निदान** (admin-मात्र, read-only) — LiteSpeed सेटिङ + नक्यास गर्ने कोड + hit/miss टेस्ट |
+| `fixes/public_html/palika-toolkit.php` | `public_html/` | पुरानो जाँच उपकरण — अब आवश्यक छैन |
 | `fixes/htaccess/palika-snippets.txt` | `public_html/.htaccess` | www → non-www, HSTS, CSP (Report-Only) स्निपेट |
 | `fixes/theme-snippets.md` | — | थिम फाइलका १४ स्निपेट (कोड English, व्याख्या नेपाली) |
 | `fixes/ad-engine/review.md` | — | Ad Engine समीक्षा — क्यास बन्द गर्ने ब्लक, खण्ड २ का ७ बुँदा र समाधान |
@@ -23,13 +26,16 @@
 
 ## लाइभ जाँचमा पुष्टि भएका मुख्य कुरा
 
-- खाली "सबै" लिङ्कको जड — होमपेज शीर्षक `पालिका वार्ता` vs श्रेणी नाम `पालिका बार्ता` (व/ब फरक) → `get_cat_ID()` ले `0`, अनि `href=""`
+- खाली "सबै" लिङ्कको जड — होमपेज शीर्षक `पालिका वार्ता` vs श्रेणी नाम `पालिका बार्ता` (व/ब फरक) → `get_cat_ID()` ले `0`, अनि `href=""` (सुधार प्याकले लाइभमा ठीक गर्यो — अब `href=""` = ०)
 - होमपेजमा `<h1>` छैन; `/home/` पेज खाली तर ४–५ मेनुमा; मेनुमा `http://www.palikalive.com`
-- Rank Math + LiteSpeed Cache सक्रिय — SEO दोहोरो आज देखिँदैन, तर Rank Math अफ गर्दा थिमको दोहोरो meta/JSON-LD देखिन्छ (सुधार प्याकले रोक्छ)
+- Rank Math + LiteSpeed Cache सक्रिय — SEO दोहोरो आज देखिँदैन (canonical/description/og:title = १-१)
 - श्रेणी slug: `economy`, `opinion`, `interview`, `5-questions`, `main_news`, `helth` (टाइपो) — सबै `/content/…` आधारमा
+- **क्यास ठीक छ:** `litespeed.conf.cache = 1`, TTL 604800, कुनै exclusion छैन, `DONOTCACHEPAGE` को रूपमा थिममा केही छैन → लेख/श्रेणी `x-litespeed-cache: hit` दिन्छन् (पहिलेको `miss` cold cache मात्र थियो)
+- **लगइन admin ले सधैं ताजा पेज देख्छ** (`vary_group administrator=99`) → क्यास जाँच्ने बेला Incognito चलाउनुहोस्
+- **थाक्ने ठूला बोझ:** भाषा `en_US` (og:locale), `NewsArticle` schema = ०, फन्ट ७ फ्यामिली, दोहोरो image optimization (EWWW + LiteSpeed)
 
 ## समेटिएको छैन (छुट्टै सेसनमा)
 
 robots.txt/sitemap को भित्री जाँच · Lighthouse को field डाटा (Core Web Vitals) · सर्भरको CSP रिपोर्ट · पूरा प्लगइन सूची र टुटेका लिङ्कको क्रल।
 
-> ⚠️ काम सकिएपछि `palika-toolkit.php` सर्भरबाट अनिवार्य Delete गर्नुहोस्।
+> ⚠️ काम सकिएपछि `palika-scan.php` र `palika-cache-find.php` सर्भरबाट अनिवार्य Delete गर्नुहोस्।
