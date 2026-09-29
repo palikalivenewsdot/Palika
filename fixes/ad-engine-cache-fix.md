@@ -4,6 +4,25 @@
 
 ---
 
+## ⏱ आजै गर्ने तीन काम (जाँच २ मिनेट + सुधार १० मिनेट)
+
+**(१) Live छ कि छैन पक्का गर्ने — तपाईंले "थाहा छैन" भन्नुभयो:**
+`mu-plugins` फोल्डर भित्रको **हरेक `.php` फाइल स्वतः सक्रिय हुन्छ** (कुनै activation चाहिँदैन)। त्यसैले:
+cPanel → File Manager → `wp-content/mu-plugins/` → त्यहाँ "Master Ad Engine" भएको फाइल छ भने **पक्का live छ**।
+
+प्रमाण (२ मिनेट): Chrome → F12 → **Network** → पेज रिलोड → पहिलो (डकुमेन्ट) अनुरोधमा क्लिक → **Headers**:
+- `cache-control: no-cache, must-revalidate, max-age=0` → क्यास बन्द छ (यो plugin चलिरहेको छ)
+- `x-litespeed-cache: miss` (हरेक पटक) → उही कुरा
+साथै WordPress → **LiteSpeed Cache → Dashboard** मा hit rate ~०% देखिन्छ।
+
+**(२) सेक्सन १ को ब्लकलाई तलको "विकल्प B" कोडले बदल्ने** (फाइलको `.bak` कपी राखेर)। यसले सामान्य पाठकका लागि क्यास खोल्छ, ad परीक्षणका लागि `?pklv_ads_debug=1` छोड्छ।
+
+**(३) LiteSpeed → Cache → TTL: Public Cache TTL = 3600 (१ घण्टा)** → ad/campaign प्रति घण्टा ताजा हुन्छ, तर क्यासको गति पनि पाइन्छ। त्यसपछि **Purge All** र फेरि Headers जाँच्नुहोस् (`x-litespeed-cache: hit` आउनुपर्छ)। कुनै ad पुरानो देखिए तुरुन्तै **Purge All** (१ क्लिक)।
+
+> यही तीन काम v47 भन्दा अघि पनि पूरा सुरक्षित छन्, किनभने सेक्सन १ को कोड पूरै देखिएको छ।
+
+---
+
 ## 🔴 समस्या १ (गम्भीर): यो plugin ले सबै पाठकका लागि LiteSpeed क्यास बन्द गर्छ
 
 **कोड (सेक्सन १):**
@@ -67,31 +86,47 @@ add_action( 'template_redirect', function() {
 
 ---
 
-### 🔧 विकल्प B: क्यास बन्द नै चाहिए (अन्तिम उपाय) — कम्तीमा साँघुरो बनाउने
+### 🔧 विकल्प B: आजै लागू गर्न मिल्ने सुरक्षित संस्करण (नामसहित function + debug-only बाइपास)
 
-यदि ad कोड साँच्चै प्रत्येक पाठकका लागि फरक HTML लेख्छ (जस्तै सर्भर-साइड rotation + भ्रमण गणना), तब मात्र:
+अहिलेको ब्लकलाई यसैले बदल्नुहोस्। **क्यास सामान्य पाठकका लागि खुल्छ**; ad परीक्षण गर्दा मात्र बन्द हुन्छ।
 
 ```php
-// 1) LiteSpeed लाई सुरुमै थाहा दिने (template_redirect भन्दा पहिले)।
-add_action( 'init', function () {
-    if ( ! defined( 'DONOTCACHEPAGE' ) ) {
-        define( 'DONOTCACHEPAGE', true );
-    }
-}, 1 );
+/**
+ * Set true only while testing ad delivery (see ?pklv_ads_debug=1 below).
+ */
+if ( ! defined( 'PKLV_ADS_NOCACHE' ) ) {
+	define( 'PKLV_ADS_NOCACHE', false );
+}
 
-// 2) नो-क्यास नियम: admin/debug मा मात्र, सामान्य पाठकमा कहिल्यै नहुने।
-add_action( 'template_redirect', function () {
+/**
+ * Invalidate page cache only for the ad tester, never for normal readers.
+ */
+function pklv_ads_cache_guard() {
 
-    $is_ad_tester = isset( $_GET['pklv_ads_debug'] ) && current_user_can( 'manage_options' );
-    if ( ! $is_ad_tester ) {
-        return; // सामान्य पाठक: क्यास चल्छ।
-    }
+	if ( is_admin() ) {
+		return;
+	}
 
-    do_action( 'litespeed_control_set_nocache', 'PalikaLive ads debug' );
-    nocache_headers();
-}, 1 );
+	$is_ad_tester = isset( $_GET['pklv_ads_debug'] ) && current_user_can( 'manage_options' );
+
+	if ( ! PKLV_ADS_NOCACHE && ! $is_ad_tester ) {
+		return; // Normal readers: keep LiteSpeed cache working.
+	}
+
+	if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+		define( 'DONOTCACHEPAGE', true );
+	}
+
+	do_action( 'litespeed_control_set_nocache', 'PalikaLive ads debug' );
+	nocache_headers();
+}
+add_action( 'template_redirect', 'pklv_ads_cache_guard', 1 );
 ```
-**प्रयोग:** ad परीक्षण गर्दा `https://palikalive.com/?pklv_ads_debug=1` खोल्नुहोस् (admin लगइन अवस्थामा)।
+
+**प्रयोग:**
+- ad परीक्षण: `https://palikalive.com/?pklv_ads_debug=1` (admin लगइन अवस्थामा) → क्यास बन्द हुन्छ, ताजा ad देखिन्छ
+- आपत्कालमा पूरै साइटको क्यास बन्द गर्नुपरे: `wp-config.php` मा `define( 'PKLV_ADS_NOCACHE', true );`
+- `litespeed_control_set_nocache` नै मुख्य काम गर्ने API हो — `DONOTCACHEPAGE` यहाँ सहयोगी मात्र (timing नमिले पनि अप्सन A/B मा फरक पर्दैन)।
 
 ---
 
@@ -99,27 +134,13 @@ add_action( 'template_redirect', function () {
 
 `add_action( 'template_redirect', function() { ... } )` जस्ता नाम-नभएका function लाई **कुनै अरू कोडले हटाउन सक्दैन** (नाम नै छैन)। त्यसैले "zero-collision" भनिए पनि आफ्नै फाइलबाट बाहिरबाट बन्द गर्ने उपाय छैन — समस्या आए `Edit` गर्नुको विकल्प छैन।
 
-**सुधार:** नामसहित, प्रिफिक्स भएका function प्रयोग गर्नुहोस् (जस्तै `pklv_ad_*`) र व्यवहार नियन्त्रण गर्न constant/filter राख्नुहोस्:
+**सुधार:** नामसहित, प्रिफिक्स भएका function प्रयोग गर्नुहोस् (जस्तै `pklv_ad_*`) र व्यवहार नियन्त्रण गर्न constant राख्नुहोस्। विकल्प B को कोड नै यसको उदाहरण हो — `PKLV_ADS_NOCACHE` ले एक लाइनबाट व्यवहार फेर्छ।
 
+**थप (v47 मा गर्ने):** पहिलो लाइनमै kill-switch राख्नुहोस्, जसले आपत्कालमा सबै ad बन्द गर्न सकियोस्:
 ```php
-if ( ! defined( 'PKLV_ADS_NOCACHE' ) ) {
-    define( 'PKLV_ADS_NOCACHE', false ); // true गरे पुरानो व्यवहार फर्किन्छ।
+if ( ! defined( 'PKLV_ADS_ENABLED' ) ) {
+	define( 'PKLV_ADS_ENABLED', true ); // wp-config.php मा false गर्दा सबै ad बन्द
 }
-
-function pklv_ads_cache_guard() {
-    if ( is_admin() || is_user_logged_in() ) {
-        return;
-    }
-    if ( PKLV_ADS_NOCACHE ) {
-        do_action( 'litespeed_control_set_nocache', 'PalikaLive ads (forced)' );
-        nocache_headers();
-    }
-}
-add_action( 'template_redirect', 'pklv_ads_cache_guard', 1 );
-```
-अब `wp-config.php` मा एउटा लाइनले बन्द/खुला गर्न सकिन्छ:
-```php
-define( 'PKLV_ADS_NOCACHE', false );
 ```
 
 ---
